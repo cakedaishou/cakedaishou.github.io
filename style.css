@@ -1,1 +1,159 @@
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #080808;
+    color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.container {
+    width: min(1000px, 92%);
+    margin: auto;
+    padding: 55px 0;
+}
+
+
+/* HEADER */
+
+header {
+    margin-bottom: 45px;
+}
+
+.logo {
+    font-size: 34px;
+    margin-bottom: 12px;
+}
+
+header h1 {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+}
+
+header p {
+    margin-top: 8px;
+    color: #777;
+    font-size: 15px;
+}
+
+
+/* STATS */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.card {
+    background: #101010;
+    border: 1px solid #202020;
+    border-radius: 15px;
+    padding: 22px;
+    transition: 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    border-color: #333;
+}
+
+.card h3 {
+    color: #777;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.card strong {
+    font-size: 27px;
+}
+
+
+/* SECTIONS */
+
+.section {
+    margin-top: 45px;
+}
+
+.section h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+
+/* EMPTY BOX */
+
+.empty {
+    background: #101010;
+    border: 1px solid #202020;
+    border-radius: 15px;
+    padding: 32px;
+    color: #666;
+    text-align: center;
+}
+
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    color: #444;
+    font-size: 12px;
+    margin-top: 70px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 750px) {
+
+    .container {
+        padding: 35px 0;
+    }
+
+    header h1 {
+        font-size: 34px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .card strong {
+        font-size: 23px;
+    }
+}
+/* NAVIGATION */
+
+nav {
+    display: flex;
+    gap: 22px;
+    margin-top: 24px;
+}
+
+nav a {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+nav a:hover {
+    color: #f5f5f5;
+}
+
+nav a.active {
+    color: #f5f5f5;
+}
