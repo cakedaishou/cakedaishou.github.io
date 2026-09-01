@@ -76,6 +76,70 @@ nav a.active::after {
 
 
 /* ============================= */
+/* STATS */
+/* ============================= */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.card {
+    background: #101010;
+    border: 1px solid #202020;
+    border-radius: 15px;
+    padding: 22px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    border-color: #333;
+}
+
+.card h3 {
+    color: #777;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.card strong {
+    font-size: 27px;
+}
+
+
+/* ============================= */
+/* SECTIONS */
+/* ============================= */
+
+.section {
+    margin-top: 45px;
+}
+
+.section h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+
+/* ============================= */
+/* EMPTY BOX */
+/* ============================= */
+
+.empty {
+    background: #101010;
+    border: 1px solid #202020;
+    border-radius: 15px;
+    padding: 32px;
+    color: #666;
+    text-align: center;
+}
+
+
+/* ============================= */
 /* SETS TOP */
 /* ============================= */
 
@@ -240,7 +304,6 @@ nav a.active::after {
 
 .filter span {
     min-width: 15px;
-
     color: #444;
     font-size: 10px;
 
@@ -319,7 +382,6 @@ nav a.active::after {
 
 .empty-state p {
     max-width: 310px;
-
     margin-top: 7px;
 
     color: #4d4d4d;
@@ -349,6 +411,18 @@ nav a.active::after {
 
     nav {
         gap: 18px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .card strong {
+        font-size: 23px;
     }
 
     .sets-top {
