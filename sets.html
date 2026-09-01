@@ -13,51 +13,99 @@
 
     <main class="container">
 
-        <header>
-            <h1>Cake's Feats</h1>
-            <p>la peace man</p>
+        <header class="site-header">
+
+            <div class="brand">
+                <h1>Cake's Feats</h1>
+                <p>la peace man</p>
+            </div>
 
             <nav>
                 <a href="./index.html">home</a>
                 <a href="./sets.html" class="active">sets</a>
             </nav>
+
         </header>
 
 
-        <section class="section sets-header">
+        <section class="sets-top">
 
-            <div>
+            <div class="sets-title">
+                <span class="eyebrow">archive</span>
                 <h2>sets</h2>
-                <p>your entire record, eventually</p>
+                <p>every fight, every score, every stupid decision</p>
             </div>
 
-            <div class="search">
+
+            <div class="search-wrapper">
+
+                <div class="search-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5"></circle>
+                        <path d="M16 16L21 21"></path>
+                    </svg>
+                </div>
+
                 <input
                     type="text"
-                    placeholder="search opponent, score, date..."
+                    placeholder="search sets..."
                     aria-label="Search sets"
                 >
+
+                <span class="search-key">⌕</span>
+
             </div>
 
         </section>
 
 
-        <section class="filters">
+        <section class="set-controls">
 
-            <button class="filter active">all</button>
-            <button class="filter">wins</button>
-            <button class="filter">losses</button>
+            <div class="filters">
 
-        </section>
+                <button class="filter active">
+                    all
+                    <span>0</span>
+                </button>
+
+                <button class="filter">
+                    wins
+                    <span>0</span>
+                </button>
+
+                <button class="filter">
+                    losses
+                    <span>0</span>
+                </button>
+
+            </div>
 
 
-        <section class="section">
-
-            <div class="empty">
-                nothing here yet...
+            <div class="set-count">
+                <span>0 sets</span>
             </div>
 
         </section>
+
+
+        <section class="sets-list">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    —
+                </div>
+
+                <h3>nothing here yet</h3>
+
+                <p>
+                    your sets will show up here once you start logging them.
+                </p>
+
+            </div>
+
+        </section>
+
 
     </main>
 
