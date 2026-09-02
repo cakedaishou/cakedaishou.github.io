@@ -1207,6 +1207,25 @@ nav a.active::after {
 #add-feat-form label {
     display: flex;
     flex-direction: column;
+/* ============================= */
+/* FORMS */
+/* ============================= */
+
+#login-form,
+#add-set-form,
+#add-activity-form,
+#add-feat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#login-form label,
+#add-set-form label,
+#add-activity-form label,
+#add-feat-form label {
+    display: flex;
+    flex-direction: column;
     gap: 7px;
 
     color: #666;
@@ -1271,8 +1290,10 @@ nav a.active::after {
 
 #add-set-form select,
 #add-feat-form select {
-    appearance: none;
-    -webkit-appearance: none;
+    appearance: auto;
+    -webkit-appearance: auto;
+
+    color-scheme: dark;
 
     cursor: pointer;
 }
@@ -1326,10 +1347,6 @@ nav a.active::after {
     cursor: default;
     transform: none;
 }
-
-/* ============================= */
-/* FORM SELECT */
-/* ============================= */
 
 select {
     width: 100%;
