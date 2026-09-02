@@ -111,8 +111,6 @@ function setupTypewriter() {
 
     setTimeout(typeNextCharacter, 450);
 }
-
-
 /* =========================
    MODALS
 ========================= */
@@ -361,8 +359,6 @@ async function handleLogout() {
     await loadActivities();
     await loadFeats();
 }
-
-
 /* =========================
    LOAD SETS
 ========================= */
@@ -445,7 +441,11 @@ function renderSets() {
             <div class="empty-state">
                 <div class="empty-icon">—</div>
                 <h3>${allSets.length ? "nothing found" : "no sets yet"}</h3>
-                <p>${allSets.length ? "try another search or filter..." : "the archive is empty for now..."}</p>
+                <p>${
+                    allSets.length
+                        ? "try another search or filter..."
+                        : "the archive is empty for now..."
+                }</p>
             </div>
         `;
 
@@ -485,7 +485,9 @@ function createSetCard(set) {
 
     return `
         <article class="set-card">
+
             <div class="set-card-top">
+
                 <div class="set-opponent">
                     <span>vs</span>
                     <strong>${opponent}</strong>
@@ -494,13 +496,16 @@ function createSetCard(set) {
                 <div class="set-result ${resultLabel}">
                     ${resultLabel}
                 </div>
+
             </div>
+
 
             <div class="set-score">
                 ${playerScore}
                 <span>—</span>
                 ${opponentScore}
             </div>
+
 
             <div class="set-card-details">
 
@@ -520,6 +525,7 @@ function createSetCard(set) {
                 </div>
 
             </div>
+
         </article>
     `;
 }
@@ -532,6 +538,7 @@ function createSetCard(set) {
 function setupFilters() {
     document.querySelectorAll(".filter").forEach((button) => {
         button.addEventListener("click", () => {
+
             document
                 .querySelectorAll(".filter")
                 .forEach((filter) => {
@@ -681,7 +688,9 @@ async function handleAddSet(event) {
         return;
     }
 
-    document.getElementById("add-set-form")?.reset();
+    document
+        .getElementById("add-set-form")
+        ?.reset();
 
     setupDateInput();
 
@@ -706,15 +715,24 @@ function updateStats(sets) {
     const winrateElement = document.getElementById("stat-winrate");
     const roundsElement = document.getElementById("stat-rounds");
 
-    const wins = sets.filter((set) => set.result === "win").length;
-    const losses = sets.filter((set) => set.result === "loss").length;
+    const wins = sets.filter(
+        (set) => set.result === "win"
+    ).length;
+
+    const losses = sets.filter(
+        (set) => set.result === "loss"
+    ).length;
 
     let winLossRatio;
 
     if (losses === 0) {
-        winLossRatio = wins > 0 ? wins.toFixed(2) : "0.00";
+        winLossRatio =
+            wins > 0
+                ? wins.toFixed(2)
+                : "0.00";
     } else {
-        winLossRatio = (wins / losses).toFixed(2);
+        winLossRatio =
+            (wins / losses).toFixed(2);
     }
 
     if (setsElement) {
@@ -727,16 +745,23 @@ function updateStats(sets) {
 
             const delay = Math.max(
                 25,
-                Math.min(180, Math.round(420 / target))
+                Math.min(
+                    180,
+                    Math.round(420 / target)
+                )
             );
 
             function countUp() {
                 current++;
 
-                setsElement.textContent = current;
+                setsElement.textContent =
+                    current;
 
                 if (current < target) {
-                    setTimeout(countUp, delay);
+                    setTimeout(
+                        countUp,
+                        delay
+                    );
                 }
             }
 
@@ -745,22 +770,24 @@ function updateStats(sets) {
     }
 
     if (wlElement) {
-        wlElement.textContent = winLossRatio;
+        wlElement.textContent =
+            winLossRatio;
     }
 
     if (winrateElement) {
         winrateElement.textContent =
             sets.length > 0
-                ? `${Math.round((wins / sets.length) * 100)}%`
+                ? `${Math.round(
+                    (wins / sets.length) * 100
+                  )}%`
                 : "—";
     }
 
     if (roundsElement) {
-        roundsElement.textContent = `${wins} - ${losses}`;
+        roundsElement.textContent =
+            `${wins} - ${losses}`;
     }
-}
-
-
+        }
 /* =========================
    RECENT ACTIVITIES
 ========================= */
@@ -822,7 +849,9 @@ async function handleAddActivity(event) {
         return;
     }
 
-    document.getElementById("add-activity-form")?.reset();
+    document
+        .getElementById("add-activity-form")
+        ?.reset();
 
     closeModal("add-activity-modal");
 
@@ -844,10 +873,15 @@ async function loadActivities() {
     const { data, error } = await supabaseClient
         .from("activities")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", {
+            ascending: false
+        });
 
     if (error) {
-        console.error("Could not load activities:", error);
+        console.error(
+            "Could not load activities:",
+            error
+        );
 
         window.allActivities = [];
         renderActivities();
@@ -861,17 +895,769 @@ async function loadActivities() {
 }
 
 function renderActivities() {
-    const list = document.getElementById("recent-activities");
+    const list =
+        document.getElementById(
+            "recent-activities"
+        );
 
     if (!list) {
         return;
     }
 
-    const activities = window.allActivities || [];
+    const activities =
+        window.allActivities || [];
 
     if (activities.length === 0) {
         list.innerHTML = `
             <div class="empty">
                 nothing here yet...
             </div>
- 
+        `;
+
+        return;
+    }
+
+    list.innerHTML = activities
+        .map((activity) =>
+            createActivity(activity)
+        )
+        .join("");
+}
+
+function createActivity(activity) {
+    const content =
+        escapeHtml(
+            activity.content || ""
+        );
+
+    const date =
+        activity.created_at
+            ? formatActivityDate(
+                activity.created_at
+            )
+            : "";
+
+    const deleteButton =
+        window.isOwnerLoggedIn
+            ? `
+                <button
+                    class="activity-delete"
+                    data-delete-activity="${activity.id}"
+                    type="button"
+                >
+                    ×
+                </button>
+            `
+            : "";
+
+    return `
+        <article class="activity">
+
+            <div class="activity-content">
+                ${content}
+            </div>
+
+            <div class="activity-meta">
+                <span>${date}</span>
+                ${deleteButton}
+            </div>
+
+        </article>
+    `;
+}
+
+
+/* =========================
+   FEATURED SETS
+========================= */
+
+function setupAddFeatForm() {
+    const form =
+        document.getElementById(
+            "add-feat-form"
+        );
+
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener(
+        "submit",
+        handleAddFeat
+    );
+}
+
+async function loadFeats() {
+    const list =
+        document.getElementById(
+            "feats-list"
+        );
+
+    if (!list || !supabaseClient) {
+        return;
+    }
+
+    const { data, error } =
+        await supabaseClient
+            .from("featured_sets")
+            .select(`
+                id,
+                set_id,
+                created_at,
+                sets (
+                    id,
+                    opponent,
+                    result,
+                    player_score,
+                    opponent_score,
+                    format,
+                    character,
+                    played_at
+                )
+            `)
+            .order("created_at", {
+                ascending: false
+            });
+
+    if (error) {
+        console.error(
+            "Could not load featured sets:",
+            error
+        );
+
+        window.featuredSets = [];
+        renderFeats();
+
+        return;
+    }
+
+    window.featuredSets = data || [];
+
+    renderFeats();
+    renderFeaturedManageList();
+}
+
+function renderFeats() {
+    const list =
+        document.getElementById(
+            "feats-list"
+        );
+
+    if (!list) {
+        return;
+    }
+
+    const featured =
+        window.featuredSets || [];
+
+    if (featured.length === 0) {
+        list.innerHTML = `
+            <div class="empty">
+                no feats here yet...
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = featured
+        .map((featuredSet) => {
+            const set =
+                featuredSet.sets;
+
+            if (!set) {
+                return "";
+            }
+
+            return createFeaturedCard(
+                set
+            );
+        })
+        .join("");
+}
+
+function createFeaturedCard(set) {
+    const opponent =
+        escapeHtml(
+            set.opponent || "unknown"
+        );
+
+    const result =
+        set.result === "win"
+            ? "win"
+            : "loss";
+
+    const format =
+        escapeHtml(
+            set.format || "—"
+        );
+
+    const character =
+        escapeHtml(
+            set.character || "—"
+        );
+
+    const playerScore =
+        Number.isFinite(
+            Number(set.player_score)
+        )
+            ? Number(set.player_score)
+            : 0;
+
+    const opponentScore =
+        Number.isFinite(
+            Number(set.opponent_score)
+        )
+            ? Number(set.opponent_score)
+            : 0;
+
+    const playedAt =
+        set.played_at
+            ? formatDate(
+                set.played_at
+            )
+            : "—";
+
+    return `
+        <article class="featured-set">
+
+            <div class="featured-top">
+
+                <span class="eyebrow">
+                    feat
+                </span>
+
+                <span class="set-result ${result}">
+                    ${result}
+                </span>
+
+            </div>
+
+            <div class="featured-opponent">
+                vs ${opponent}
+            </div>
+
+            <div class="featured-score">
+                ${playerScore}
+                <span>—</span>
+                ${opponentScore}
+            </div>
+
+            <div class="featured-details">
+
+                <span>
+                    ${format}
+                </span>
+
+                <span>
+                    ${character}
+                </span>
+
+                <span>
+                    ${playedAt}
+                </span>
+
+            </div>
+
+        </article>
+    `;
+                    }
+/* =========================
+   FEATURE MANAGEMENT
+========================= */
+
+async function populateFeatSelect() {
+    const select =
+        document.getElementById(
+            "feat-set-select"
+        );
+
+    if (!select) {
+        return;
+    }
+
+    const featuredIds =
+        new Set(
+            (window.featuredSets || [])
+                .map(
+                    (featured) =>
+                        String(featured.set_id)
+                )
+        );
+
+    const availableSets =
+        (window.allSets || [])
+            .filter(
+                (set) =>
+                    !featuredIds.has(
+                        String(set.id)
+                    )
+            );
+
+    if (availableSets.length === 0) {
+        select.innerHTML = `
+            <option value="">
+                all sets are already featured
+            </option>
+        `;
+
+        return;
+    }
+
+    select.innerHTML = `
+        <option value="">
+            choose a set...
+        </option>
+
+        ${availableSets
+            .map((set) => {
+                const opponent =
+                    escapeHtml(
+                        set.opponent ||
+                            "unknown"
+                    );
+
+                const result =
+                    set.result === "win"
+                        ? "W"
+                        : "L";
+
+                const score =
+                    `${Number(
+                        set.player_score
+                    ) || 0}-${Number(
+                        set.opponent_score
+                    ) || 0}`;
+
+                const date =
+                    set.played_at
+                        ? formatDate(
+                            set.played_at
+                        )
+                        : "—";
+
+                return `
+                    <option
+                        value="${escapeHtml(
+                            String(set.id)
+                        )}"
+                    >
+                        ${result} vs ${opponent} · ${score} · ${date}
+                    </option>
+                `;
+            })
+            .join("")}
+    `;
+}
+
+async function handleAddFeat(event) {
+    event.preventDefault();
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    const select =
+        document.getElementById(
+            "feat-set-select"
+        );
+
+    const errorElement =
+        document.getElementById(
+            "feat-error"
+        );
+
+    const submitButton =
+        event.submitter;
+
+    const setId =
+        select?.value;
+
+    if (!setId) {
+        if (errorElement) {
+            errorElement.textContent =
+                "choose a set first";
+        }
+
+        return;
+    }
+
+    if (errorElement) {
+        errorElement.textContent = "";
+    }
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent =
+            "adding...";
+    }
+
+    const { error } =
+        await supabaseClient
+            .from("featured_sets")
+            .insert({
+                set_id: Number(setId)
+            });
+
+    if (error) {
+        console.error(
+            "Could not feature set:",
+            error
+        );
+
+        if (errorElement) {
+            errorElement.textContent =
+                error.message;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent =
+                "add feat";
+        }
+
+        return;
+    }
+
+    if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent =
+            "add feat";
+    }
+
+    await loadFeats();
+    await populateFeatSelect();
+
+    if (select) {
+        select.value = "";
+    }
+}
+
+function renderFeaturedManageList() {
+    const list =
+        document.getElementById(
+            "featured-manage-list"
+        );
+
+    if (!list) {
+        return;
+    }
+
+    if (!window.isOwnerLoggedIn) {
+        list.innerHTML = "";
+        return;
+    }
+
+    const featured =
+        window.featuredSets || [];
+
+    if (featured.length === 0) {
+        list.innerHTML = `
+            <div class="empty">
+                no featured sets yet...
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = featured
+        .map((featuredSet) => {
+            const set =
+                featuredSet.sets;
+
+            if (!set) {
+                return "";
+            }
+
+            const opponent =
+                escapeHtml(
+                    set.opponent ||
+                        "unknown"
+                );
+
+            const result =
+                set.result === "win"
+                    ? "win"
+                    : "loss";
+
+            const score =
+                `${Number(
+                    set.player_score
+                ) || 0}-${Number(
+                    set.opponent_score
+                ) || 0}`;
+
+            return `
+                <div class="featured-manage-item">
+
+                    <div>
+                        <strong>
+                            vs ${opponent}
+                        </strong>
+
+                        <span>
+                            ${result} · ${score}
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="activity-delete"
+                        data-delete-featured="${featuredSet.id}"
+                    >
+                        ×
+                    </button>
+
+                </div>
+            `;
+        })
+        .join("");
+}
+
+
+/* =========================
+   DYNAMIC ACTIONS
+========================= */
+
+function setupDynamicActions() {
+    document.addEventListener(
+        "click",
+        async (event) => {
+            const activityButton =
+                event.target.closest(
+                    "[data-delete-activity]"
+                );
+
+            if (activityButton) {
+                const id =
+                    activityButton.dataset
+                        .deleteActivity;
+
+                await deleteActivity(id);
+                return;
+            }
+
+            const featuredButton =
+                event.target.closest(
+                    "[data-delete-featured]"
+                );
+
+            if (featuredButton) {
+                const id =
+                    featuredButton.dataset
+                        .deleteFeatured;
+
+                await deleteFeatured(id);
+                return;
+            }
+        }
+    );
+}
+
+async function deleteActivity(id) {
+    if (
+        !supabaseClient ||
+        !window.isOwnerLoggedIn
+    ) {
+        return;
+    }
+
+    const { error } =
+        await supabaseClient
+            .from("activities")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+        console.error(
+            "Could not delete activity:",
+            error
+        );
+
+        return;
+    }
+
+    await loadActivities();
+}
+
+async function deleteFeatured(id) {
+    if (
+        !supabaseClient ||
+        !window.isOwnerLoggedIn
+    ) {
+        return;
+    }
+
+    const { error } =
+        await supabaseClient
+            .from("featured_sets")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+        console.error(
+            "Could not remove featured set:",
+            error
+        );
+
+        return;
+    }
+
+    await loadFeats();
+    await populateFeatSelect();
+             }
+/* =========================
+   DATE HELPERS
+========================= */
+
+function setupDateInput() {
+    const input =
+        document.getElementById("set-date");
+
+    if (!input) {
+        return;
+    }
+
+    if (!input.value) {
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+        input.value = today;
+    }
+}
+
+function formatDate(value) {
+    if (!value) {
+        return "—";
+    }
+
+    const date =
+        new Date(`${value}T00:00:00`);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return escapeHtml(
+            String(value)
+        );
+    }
+
+    return date.toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+}
+
+function formatActivityDate(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "";
+    }
+
+    return date.toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+}
+
+
+/* =========================
+   SET COUNT
+========================= */
+
+function updateSetCount(count) {
+    const element =
+        document.querySelector(
+            ".set-count span"
+        );
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        `${count} ${
+            count === 1
+                ? "set"
+                : "sets"
+        }`;
+}
+
+
+/* =========================
+   LOADING ERROR
+========================= */
+
+function showLoadingError(message) {
+    const list =
+        document.getElementById(
+            "sets-list"
+        );
+
+    if (!list) {
+        return;
+    }
+
+    list.innerHTML = `
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                !
+            </div>
+
+            <h3>
+                ${escapeHtml(message)}
+            </h3>
+
+            <p>
+                check the console for details...
+            </p>
+
+        </div>
+    `;
+}
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
