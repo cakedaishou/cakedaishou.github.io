@@ -1,23 +1,7 @@
-/* ============================= */
-/* SUPABASE */
-/* ============================= */
+const SUPABASE_URL = "https://vokvtguinvrcignimxnz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_unLqx7_o_zlF0bTWtfOgZg_qqJ55uNb";
 
-const SUPABASE_URL =
-    "https://vokvtguinvrcignimxnz.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_unLqx7_o_zlF0bTWtfOgZg_qqJ55uNb";
-
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
-
-
-/* ============================= */
-/* SUBTITLES */
-/* ============================= */
+let supabaseClient = null;
 
 const subtitles = [
     "la peace man",
@@ -44,1053 +28,729 @@ const subtitles = [
     "fishnets>>thigh socks"
 ];
 
+document.addEventListener("DOMContentLoaded", () => {
+    startApp();
+});
 
-const subtitleElement =
-    document.getElementById("random-subtitle");
+async function startApp() {
+    setupTypewriter();
+    setupModals();
+    setupFilters();
+    setupSearch();
+    setupAddSetForm();
+    setupDateInput();
 
-const titleElement =
-    document.querySelector(
-        ".brand h1, .sets-title h1"
-    );
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
 
-
-/* ============================= */
-/* TYPEWRITER */
-/* ============================= */
-
-function getRandomSubtitle() {
-
-    return subtitles[
-        Math.floor(
-            Math.random() * subtitles.length
-        )
-    ];
-
+        setupAuth();
+        await updateAuthUI();
+        await loadSets();
+    } else {
+        console.error("Supabase library failed to load.");
+        showLoadingError("supabase failed to load");
+    }
 }
 
 
-function typeSubtitle(text) {
+/* =========================
+   TYPEWRITER
+========================= */
 
-    if (!subtitleElement) return;
+function setupTypewriter() {
+    const element = document.getElementById("random-subtitle");
 
-    subtitleElement.textContent = "";
+    if (!element) {
+        return;
+    }
 
-    subtitleElement.classList.remove(
-        "finished"
-    );
+    const isSetsPage = document.body.classList.contains("sets-page");
 
-    subtitleElement.classList.add(
-        "typing"
-    );
+    const text = isSetsPage
+        ? "every fight and every score"
+        : subtitles[Math.floor(Math.random() * subtitles.length)];
 
-    subtitleElement.style.opacity = "1";
+    element.textContent = "";
+    element.style.opacity = "1";
 
     let index = 0;
 
-
     function typeNextCharacter() {
-
         if (index >= text.length) {
-
-            subtitleElement.classList.remove(
-                "typing"
-            );
-
-            subtitleElement.classList.add(
-                "finished"
-            );
-
             return;
         }
 
-
-        const character =
-            text[index];
-
-
-        subtitleElement.textContent +=
-            character;
-
-
+        element.textContent += text[index];
         index++;
 
-
-        let speed = 58;
-
-
-        if (
-            character === "." ||
-            character === "!" ||
-            character === "?"
-        ) {
-
-            speed = 220;
-
-        }
-
-
-        setTimeout(
-            typeNextCharacter,
-            speed
-        );
-
+        setTimeout(typeNextCharacter, 38);
     }
 
-
-    typeNextCharacter();
-
+    setTimeout(typeNextCharacter, 450);
 }
 
 
-function startSubtitleAnimation() {
+/* =========================
+   MODALS
+========================= */
 
-    if (!subtitleElement) return;
+function setupModals() {
+    const loginButton = document.getElementById("login-button");
+    const addSetButton = document.getElementById("add-set-button");
 
+    if (loginButton) {
+        loginButton.addEventListener("click", () => {
+            openModal("login-modal");
+        });
+    }
 
-    subtitleElement.style.opacity = "0";
+    if (addSetButton) {
+        addSetButton.addEventListener("click", () => {
+            openModal("add-set-modal");
+        });
+    }
 
-    subtitleElement.textContent = "";
+    document.querySelectorAll("[data-close-modal]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const modal = button.closest(".modal-backdrop");
 
-    subtitleElement.classList.remove(
-        "typing",
-        "finished"
-    );
+            if (modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
 
+    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+        backdrop.addEventListener("click", (event) => {
+            if (event.target === backdrop) {
+                closeModal(backdrop.id);
+            }
+        });
+    });
 
-    setTimeout(
-        function () {
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") {
+            return;
+        }
 
-            const text =
-                document.body.classList.contains(
-                    "sets-page"
-                )
-                    ? "every fight and every score"
-                    : getRandomSubtitle();
+        document
+            .querySelectorAll(".modal-backdrop.open")
+            .forEach((modal) => {
+                closeModal(modal.id);
+            });
+    });
+}
 
+function openModal(id) {
+    const modal = document.getElementById(id);
 
-            typeSubtitle(text);
+    if (!modal) {
+        console.error(`Modal not found: ${id}`);
+        return;
+    }
 
-        },
-        150
-    );
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+}
 
+function closeModal(id) {
+    const modal = document.getElementById(id);
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+
+    if (!document.querySelector(".modal-backdrop.open")) {
+        document.body.classList.remove("modal-open");
+    }
 }
 
 
-/*
- * Start predictably instead of depending
- * on animationend firing.
- */
+/* =========================
+   AUTH
+========================= */
 
-if (
-    titleElement &&
-    subtitleElement
-) {
+function setupAuth() {
+    const loginForm = document.getElementById("login-form");
+    const logoutButton = document.getElementById("logout-button");
 
-    setTimeout(
-        startSubtitleAnimation,
-        850
-    );
+    if (loginForm) {
+        loginForm.addEventListener("submit", handleLogin);
+    }
 
-} else if (subtitleElement) {
+    if (logoutButton) {
+        logoutButton.addEventListener("click", handleLogout);
+    }
 
-    startSubtitleAnimation();
+    supabaseClient.auth.onAuthStateChange(() => {
+        // Do not await Supabase calls inside this callback.
+        setTimeout(() => {
+            updateAuthUI();
+            loadSets();
+        }, 0);
+    });
+}
 
+async function updateAuthUI() {
+    if (!supabaseClient) {
+        return;
+    }
+
+    const loginButton = document.getElementById("login-button");
+    const ownerTools = document.getElementById("owner-tools");
+
+    const {
+        data: { session },
+        error
+    } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("Could not get session:", error);
+        return;
+    }
+
+    if (session) {
+        if (loginButton) {
+            loginButton.style.display = "none";
+        }
+
+        if (ownerTools) {
+            ownerTools.style.display = "flex";
+        }
+    } else {
+        if (loginButton) {
+            loginButton.style.display = "inline-flex";
+        }
+
+        if (ownerTools) {
+            ownerTools.style.display = "none";
+        }
+    }
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById("login-email");
+    const passwordInput = document.getElementById("login-password");
+    const errorElement = document.getElementById("login-error");
+    const submitButton = event.submitter;
+
+    if (!emailInput || !passwordInput) {
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (errorElement) {
+        errorElement.textContent = "";
+    }
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "signing in...";
+    }
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        console.error("Login failed:", error);
+
+        if (errorElement) {
+            errorElement.textContent = error.message;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = "sign in";
+        }
+
+        return;
+    }
+
+    document.getElementById("login-form")?.reset();
+    closeModal("login-modal");
+
+    if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "sign in";
+    }
+}
+
+async function handleLogout() {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        console.error("Logout failed:", error);
+        return;
+    }
+
+    await updateAuthUI();
+    await loadSets();
 }
 
 
-/* ============================= */
-/* HELPERS */
-/* ============================= */
+/* =========================
+   LOAD SETS
+========================= */
 
-function escapeHTML(value) {
+async function loadSets() {
+    const list = document.getElementById("sets-list");
 
-    return String(value ?? "")
+    if (!list || !supabaseClient) {
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("sets")
+        .select("*")
+        .order("played_at", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Could not load sets:", error);
+
+        showLoadingError("couldn't load the archive");
+        return;
+    }
+
+    window.allSets = data || [];
+
+    updateStats(window.allSets);
+    updateFilterCounts(window.allSets);
+
+    renderSets();
+}
+
+
+/* =========================
+   RENDER SETS
+========================= */
+
+function renderSets() {
+    const list = document.getElementById("sets-list");
+
+    if (!list) {
+        return;
+    }
+
+    const searchInput = document.querySelector(".search-wrapper input");
+    const searchTerm = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
+    const activeFilter =
+        document.querySelector(".filter.active")?.dataset.filter || "all";
+
+    const allSets = window.allSets || [];
+
+    let filtered = allSets;
+
+    if (activeFilter !== "all") {
+        filtered = filtered.filter(
+            (set) => set.result === activeFilter
+        );
+    }
+
+    if (searchTerm) {
+        filtered = filtered.filter((set) => {
+            return [
+                set.opponent,
+                set.result,
+                set.format,
+                set.character,
+                set.played_at
+            ]
+                .filter(Boolean)
+                .some((value) =>
+                    String(value).toLowerCase().includes(searchTerm)
+                );
+        });
+    }
+
+    if (filtered.length === 0) {
+        list.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">—</div>
+                <h3>${allSets.length ? "nothing found" : "no sets yet"}</h3>
+                <p>${allSets.length ? "try another search or filter..." : "the archive is empty for now..."}</p>
+            </div>
+        `;
+
+        updateSetCount(0);
+        return;
+    }
+
+    list.innerHTML = filtered
+        .map((set) => createSetCard(set))
+        .join("");
+
+    updateSetCount(filtered.length);
+}
+
+function createSetCard(set) {
+    const opponent = escapeHtml(set.opponent || "unknown");
+    const result = escapeHtml(set.result || "");
+    const format = escapeHtml(set.format || "—");
+    const character = escapeHtml(set.character || "—");
+
+    const playerScore = Number.isFinite(Number(set.player_score))
+        ? Number(set.player_score)
+        : 0;
+
+    const opponentScore = Number.isFinite(Number(set.opponent_score))
+        ? Number(set.opponent_score)
+        : 0;
+
+    const playedAt = set.played_at
+        ? formatDate(set.played_at)
+        : "—";
+
+    const resultLabel =
+        result === "win"
+            ? "win"
+            : "loss";
+
+    return `
+        <article class="set-card">
+            <div class="set-card-top">
+                <div class="set-opponent">
+                    <span>vs</span>
+                    <strong>${opponent}</strong>
+                </div>
+
+                <div class="set-result ${resultLabel}">
+                    ${resultLabel}
+                </div>
+            </div>
+
+            <div class="set-score">
+                ${playerScore}
+                <span>—</span>
+                ${opponentScore}
+            </div>
+
+            <div class="set-card-details">
+
+                <div class="set-detail">
+                    <span>format</span>
+                    <strong>${format}</strong>
+                </div>
+
+                <div class="set-detail">
+                    <span>character</span>
+                    <strong>${character}</strong>
+                </div>
+
+                <div class="set-detail">
+                    <span>date</span>
+                    <strong>${playedAt}</strong>
+                </div>
+
+            </div>
+        </article>
+    `;
+}
+
+
+/* =========================
+   FILTERS
+========================= */
+
+function setupFilters() {
+    document.querySelectorAll(".filter").forEach((button) => {
+        button.addEventListener("click", () => {
+            document
+                .querySelectorAll(".filter")
+                .forEach((filter) => {
+                    filter.classList.remove("active");
+                });
+
+            button.classList.add("active");
+
+            renderSets();
+        });
+    });
+}
+
+function updateFilterCounts(sets) {
+    const allButton = document.querySelector(
+        '.filter[data-filter="all"] span'
+    );
+
+    const winButton = document.querySelector(
+        '.filter[data-filter="win"] span'
+    );
+
+    const lossButton = document.querySelector(
+        '.filter[data-filter="loss"] span'
+    );
+
+    if (allButton) {
+        allButton.textContent = sets.length;
+    }
+
+    if (winButton) {
+        winButton.textContent = sets.filter(
+            (set) => set.result === "win"
+        ).length;
+    }
+
+    if (lossButton) {
+        lossButton.textContent = sets.filter(
+            (set) => set.result === "loss"
+        ).length;
+    }
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+function setupSearch() {
+    const input = document.querySelector(".search-wrapper input");
+
+    if (!input) {
+        return;
+    }
+
+    input.addEventListener("input", () => {
+        renderSets();
+    });
+}
+
+
+/* =========================
+   ADD SET
+========================= */
+
+function setupAddSetForm() {
+    const form = document.getElementById("add-set-form");
+
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", handleAddSet);
+}
+
+async function handleAddSet(event) {
+    event.preventDefault();
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    const errorElement = document.getElementById("add-set-error");
+    const submitButton = event.submitter;
+
+    const opponent = document
+        .getElementById("set-opponent")
+        ?.value.trim();
+
+    const result = document
+        .getElementById("set-result")
+        ?.value;
+
+    const format = document
+        .getElementById("set-format")
+        ?.value.trim();
+
+    const playerScore = Number(
+        document.getElementById("set-player-score")?.value
+    );
+
+    const opponentScore = Number(
+        document.getElementById("set-opponent-score")?.value
+    );
+
+    const character = document
+        .getElementById("set-character")
+        ?.value.trim();
+
+    const playedAt = document
+        .getElementById("set-date")
+        ?.value;
+
+    if (errorElement) {
+        errorElement.textContent = "";
+    }
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "saving...";
+    }
+
+    const { error } = await supabaseClient
+        .from("sets")
+        .insert({
+            opponent,
+            result,
+            player_score: playerScore,
+            opponent_score: opponentScore,
+            format,
+            character,
+            played_at: playedAt
+        });
+
+    if (error) {
+        console.error("Could not add set:", error);
+
+        if (errorElement) {
+            errorElement.textContent = error.message;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = "save set";
+        }
+
+        return;
+    }
+
+    document.getElementById("add-set-form")?.reset();
+
+    setupDateInput();
+
+    closeModal("add-set-modal");
+
+    if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "save set";
+    }
+
+    await loadSets();
+}
+
+
+/* =========================
+   HOME STATS
+========================= */
+
+function updateStats(sets) {
+    const setsElement = document.getElementById("stat-sets");
+    const wlElement = document.getElementById("stat-wl");
+    const winrateElement = document.getElementById("stat-winrate");
+    const roundsElement = document.getElementById("stat-rounds");
+
+    if (!document.body.classList.contains("home-page")) {
+        return;
+    }
+
+    const wins = sets.filter((set) => set.result === "win").length;
+    const losses = sets.filter((set) => set.result === "loss").length;
+
+    const roundsWon = sets.reduce(
+        (total, set) => total + Number(set.player_score || 0),
+        0
+    );
+
+    const roundsLost = sets.reduce(
+        (total, set) => total + Number(set.opponent_score || 0),
+        0
+    );
+
+    if (setsElement) {
+        setsElement.textContent = sets.length;
+    }
+
+    if (wlElement) {
+        wlElement.textContent = `${wins} - ${losses}`;
+    }
+
+    if (winrateElement) {
+        winrateElement.textContent =
+            sets.length > 0
+                ? `${Math.round((wins / sets.length) * 100)}%`
+                : "—";
+    }
+
+    if (roundsElement) {
+        roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
+    }
+}
+
+
+/* =========================
+   HELPERS
+========================= */
+
+function updateSetCount(count) {
+    const element = document.querySelector(".set-count span");
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent = `${count} ${
+        count === 1 ? "set" : "sets"
+    }`;
+}
+
+function formatDate(value) {
+    const date = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function escapeHtml(value) {
+    return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
 
+function setupDateInput() {
+    const input = document.getElementById("set-date");
 
-function formatDate(dateString) {
-
-    if (!dateString) return "—";
-
-
-    const date =
-        new Date(
-            `${dateString}T00:00:00`
-        );
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return dateString;
-
-    }
-
-
-    return date.toLocaleDateString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-
-}
-
-
-function getToday() {
-
-    const date =
-        new Date();
-
-
-    const year =
-        date.getFullYear();
-
-
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
-
-
-    const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
-
-
-    return `${year}-${month}-${day}`;
-
-}
-
-
-/* ============================= */
-/* FETCH SETS */
-/* ============================= */
-
-async function fetchSets() {
-
-    const {
-        data,
-        error
-    } =
-        await supabaseClient
-            .from("sets")
-            .select("*")
-            .order(
-                "played_at",
-                {
-                    ascending: false
-                }
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
-
-
-    return {
-        data: data || [],
-        error: error || null
-    };
-
-}
-
-
-/* ============================= */
-/* HOME PAGE */
-/* ============================= */
-
-async function loadHomePage() {
-
-    const statSets =
-        document.getElementById(
-            "stat-sets"
-        );
-
-
-    if (!statSets) return;
-
-
-    const {
-        data: sets,
-        error
-    } =
-        await fetchSets();
-
-
-    if (error) {
-
-        console.error(
-            "Failed to load homepage:",
-            error
-        );
-
+    if (!input || input.value) {
         return;
     }
 
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
 
-    const totalSets =
-        sets.length;
+    const localDate = new Date(
+        now.getTime() - offset * 60 * 1000
+    )
+        .toISOString()
+        .split("T")[0];
 
-
-    const wins =
-        sets.filter(
-            set =>
-                set.result === "win"
-        ).length;
-
-
-    const losses =
-        sets.filter(
-            set =>
-                set.result === "loss"
-        ).length;
-
-
-    let playerRounds = 0;
-    let opponentRounds = 0;
-
-
-    sets.forEach(
-        function (set) {
-
-            playerRounds +=
-                Number(
-                    set.player_score || 0
-                );
-
-
-            opponentRounds +=
-                Number(
-                    set.opponent_score || 0
-                );
-
-        }
-    );
-
-
-    statSets.textContent =
-        totalSets;
-
-
-    const record =
-        document.getElementById(
-            "stat-record"
-        );
-
-
-    if (record) {
-
-        record.textContent =
-            `${wins} - ${losses}`;
-
-    }
-
-
-    const winrate =
-        document.getElementById(
-            "stat-winrate"
-        );
-
-
-    if (winrate) {
-
-        winrate.textContent =
-            totalSets === 0
-                ? "—"
-                : `${(
-                    wins /
-                    totalSets *
-                    100
-                ).toFixed(1)}%`;
-
-    }
-
-
-    const rounds =
-        document.getElementById(
-            "stat-rounds"
-        );
-
-
-    if (rounds) {
-
-        rounds.textContent =
-            `${playerRounds} - ${opponentRounds}`;
-
-    }
-
-
-    const recent =
-        document.getElementById(
-            "recent-activities"
-        );
-
-
-    if (
-        recent &&
-        sets.length > 0
-    ) {
-
-        recent.innerHTML =
-            sets
-                .slice(0, 3)
-                .map(
-                    function (set) {
-
-                        return `
-                            <div class="recent-item">
-
-                                <span>
-                                    ${escapeHTML(
-                                        set.result
-                                    )}
-                                </span>
-
-                                <strong>
-                                    ${escapeHTML(
-                                        set.opponent
-                                    )}
-                                </strong>
-
-                                <b>
-                                    ${Number(
-                                        set.player_score || 0
-                                    )}
-                                    —
-                                    ${Number(
-                                        set.opponent_score || 0
-                                    )}
-                                </b>
-
-                                <small>
-                                    ${formatDate(
-                                        set.played_at
-                                    )}
-                                </small>
-
-                            </div>
-                        `;
-
-                    }
-                )
-                .join("");
-
-    }
-
+    input.value = localDate;
 }
 
+function showLoadingError(message) {
+    const list = document.getElementById("sets-list");
 
-/* ============================= */
-/* SETS PAGE */
-/* ============================= */
+    if (!list) {
+        return;
+    }
 
-if (
-    document.body.classList.contains(
-        "sets-page"
-    )
-) {
-
-    const filterButtons =
-        document.querySelectorAll(
-            ".filter"
-        );
-
-
-    const searchInput =
-        document.querySelector(
-            ".search-wrapper input"
-        );
-
-
-    const setCount =
-        document.querySelector(
-            ".set-count span"
-        );
-
-
-    const allFilter =
-        document.querySelector(
-            '.filter[data-filter="all"]'
-        );
-
-
-    const winsFilter =
-        document.querySelector(
-            '.filter[data-filter="win"]'
-        );
-
-
-    const lossesFilter =
-        document.querySelector(
-            '.filter[data-filter="loss"]'
-        );
-
-
-    const setsList =
-        document.getElementById(
-            "sets-list"
-        );
-
-
-    const loadingState =
-        document.getElementById(
-            "sets-loading"
-        );
-
-
-    const loginButton =
-        document.getElementById(
-            "login-button"
-        );
-
-
-    const ownerTools =
-        document.getElementById(
-            "owner-tools"
-        );
-
-
-    const addSetButton =
-        document.getElementById(
-            "add-set-button"
-        );
-
-
-    const logoutButton =
-        document.getElementById(
-            "logout-button"
-        );
-
-
-    const loginModal =
-        document.getElementById(
-            "login-modal"
-        );
-
-
-    const addSetModal =
-        document.getElementById(
-            "add-set-modal"
-        );
-
-
-    const loginForm =
-        document.getElementById(
-            "login-form"
-        );
-
-
-    const addSetForm =
-        document.getElementById(
-            "add-set-form"
-        );
-
-
-    const loginError =
-        document.getElementById(
-            "login-error"
-        );
-
-
-    const addSetError =
-        document.getElementById(
-            "add-set-error"
-        );
-
-
-    const setDate =
-        document.getElementById(
-            "set-date"
-        );
-
-
-    let allSets = [];
-
-    let currentFilter = "all";
-
-
-    /* ============================= */
-    /* EMPTY RESULT */
-    /* ============================= */
-
-    const noResults =
-        document.createElement(
-            "div"
-        );
-
-
-    noResults.className =
-        "empty-state";
-
-
-    noResults.innerHTML = `
-        <div class="empty-icon">—</div>
-
-        <h3>
-            nothing here yet
-        </h3>
-
-        <p>
-            no sets match what you're looking for.
-        </p>
+    list.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">—</div>
+            <h3>${escapeHtml(message)}</h3>
+            <p>check the browser console for the error...</p>
+        </div>
     `;
-
-
-    noResults.style.display =
-        "none";
-
-
-    if (setsList) {
-
-        setsList.appendChild(
-            noResults
-        );
-
-    }
-
-
-    /* ============================= */
-    /* MODALS */
-    /* ============================= */
-
-    function openModal(modal) {
-
-        if (!modal) return;
-
-        modal.classList.add(
-            "open"
-        );
-
-        document.body.classList.add(
-            "modal-open"
-        );
-
-    }
-
-
-    function closeModal(modal) {
-
-        if (!modal) return;
-
-        modal.classList.remove(
-            "open"
-        );
-
-
-        if (
-            !document.querySelector(
-                ".modal-backdrop.open"
-            )
-        ) {
-
-            document.body.classList.remove(
-                "modal-open"
-            );
-
-        }
-
-    }
-
-
-    document
-        .querySelectorAll(
-            "[data-close-modal]"
-        )
-        .forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        closeModal(
-                            button.closest(
-                                ".modal-backdrop"
-                            )
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            ".modal-backdrop"
-        )
-        .forEach(
-            function (backdrop) {
-
-                backdrop.addEventListener(
-                    "click",
-                    function (event) {
-
-                        if (
-                            event.target ===
-                            backdrop
-                        ) {
-
-                            closeModal(
-                                backdrop
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        );
-
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key === "Escape"
-            ) {
-
-                document
-                    .querySelectorAll(
-                        ".modal-backdrop.open"
-                    )
-                    .forEach(
-                        function (modal) {
-
-                            closeModal(
-                                modal
-                            );
-
-                        }
-                    );
-
-            }
-
-        }
-    );
-
-
-    /* ============================= */
-    /* AUTH UI */
-    /* ============================= */
-
-    function updateAuthUI(session) {
-
-        const loggedIn =
-            Boolean(session);
-
-
-        if (loginButton) {
-
-            loginButton.style.display =
-                loggedIn
-                    ? "none"
-                    : "inline-flex";
-
-        }
-
-
-        if (ownerTools) {
-
-            ownerTools.style.display =
-                loggedIn
-                    ? "flex"
-                    : "none";
-
-        }
-
-    }
-
-
-    /* ============================= */
-    /* AUTH STATE */
-    /* ============================= */
-
-    supabaseClient.auth.onAuthStateChange(
-        function (_event, session) {
-
-            setTimeout(
-                function () {
-
-                    updateAuthUI(
-                        session
-                    );
-
-                },
-                0
-            );
-
-        }
-    );
-
-
-    async function loadAuthState() {
-
-        const {
-            data,
-            error
-        } =
-            await supabaseClient.auth.getSession();
-
-
-        if (error) {
-
-            console.error(
-                "Auth error:",
-                error
-            );
-
-            updateAuthUI(
-                null
-            );
-
-            return;
-
-        }
-
-
-        updateAuthUI(
-            data.session
-        );
-
-    }
-
-
-    /* ============================= */
-    /* RENDER SETS */
-    /* ============================= */
-
-    function renderSets() {
-
-        if (!setsList) return;
-
-
-        const searchTerm =
-            searchInput
-                ? searchInput.value
-                    .trim()
-                    .toLowerCase()
-                : "";
-
-
-        const filteredSets =
-            allSets.filter(
-                function (set) {
-
-                    const result =
-                        String(
-                            set.result || ""
-                        ).toLowerCase();
-
-
-                    const opponent =
-                        String(
-                            set.opponent || ""
-                        ).toLowerCase();
-
-
-                    const format =
-                        String(
-                            set.format || ""
-                        ).toLowerCase();
-
-
-                    const character =
-                        String(
-                            set.character || ""
-                        ).toLowerCase();
-
-
-                    const matchesFilter =
-                        currentFilter === "all" ||
-                        result === currentFilter;
-
-
-                    const matchesSearch =
-                        !searchTerm ||
-                        opponent.includes(
-                            searchTerm
-                        ) ||
-                        format.includes(
-                            searchTerm
-                        ) ||
-                        character.includes(
-                            searchTerm
-                        );
-
-
-                    return (
-                        matchesFilter &&
-                        matchesSearch
-                    );
-
-                }
-            );
-
-
-        setsList
-            .querySelectorAll(
-                ".set-card"
-            )
-            .forEach(
-                function (card) {
-
-                    card.remove();
-
-                }
-            );
-
-
-        filteredSets.forEach(
-            function (set) {
-
-                const result =
-                    set.result === "win"
-                        ? "win"
-                        : "loss";
-
-
-                const card =
-                    document.createElement(
-                        "article"
-                    );
-
-
-                card.className =
-                    "set-card";
-
-
-                card.innerHTML = `
-                    <div class="set-card-top">
-
-                        <div class="set-opponent">
-
-                            <span>
-                                vs
-                            </span>
-
-                            <strong>
-                                ${escapeHTML(
-                                    set.opponent
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="set-result ${result}">
-                            ${escapeHTML(
-                                set.result
-                            )}
-                        </div>
-
-                    </div>
-
-
-                    <div class="set-score">
-
-                        ${Number(
-                            set.player_score || 0
-                        )}
-
-                        <span>
-                            —
-                        </span>
-
-                        ${Number(
-                            set.opponent_score || 0
-                        )}
-
-                    </div>
-
-
-                    <div class="set-card-details">
-
-                        <div class="set-detail">
-
-                            <span>
-                                format
-                            </span>
-
-                            <strong>
-                                ${escapeHTML(
-                                    set.format
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="set-detail">
-
-                            <span>
-                                character
-                            </span>
-
-                            <strong>
-                                ${escapeHTML(
-                                    set.character
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="set-detail">
-
-                            <span>
-                                date
-                            </span>
-
-                            <strong>
-                                ${formatDate(
-                                    set.played_at
-                                )}
-                            </strong>
-
-                        </div>
-
-                    </div>
-                `;
-
-
-                setsList.insertBefore(
-                    card,
-                    noResults
-                );
-
-            }
-        );
-
-
-        const wins =
-            allSets.filter(
-                set =>
-                    set.result === "win"
-            ).length;
-
-
-        const losses =
-            allSets.filter(
-                set =>
-                    set.result === "loss"
-            ).len
+}
