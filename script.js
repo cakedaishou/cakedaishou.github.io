@@ -151,3 +151,230 @@ if (titleElement && subtitleElement) {
     startSubtitleAnimation();
 
 }
+
+
+/* ============================= */
+/* SET FILTERS + SEARCH */
+/* ============================= */
+
+if (document.body.classList.contains("sets-page")) {
+
+    const filterButtons = document.querySelectorAll(".filter");
+    const searchInput = document.querySelector(".search-wrapper input");
+    const setCards = document.querySelectorAll(".set-card");
+
+    const setCount = document.querySelector(".set-count span");
+
+    const allFilter = document.querySelector(".filter:nth-child(1)");
+    const winsFilter = document.querySelector(".filter:nth-child(2)");
+    const lossesFilter = document.querySelector(".filter:nth-child(3)");
+
+    const setsList = document.querySelector(".sets-list");
+
+
+    let currentFilter = "all";
+
+
+    /*
+     * Empty state used when a filter/search
+     * produces no results.
+     */
+
+    const noResults = document.createElement("div");
+
+    noResults.className = "empty-state";
+    noResults.innerHTML = `
+        <div class="empty-icon">—</div>
+        <h3>nothing here yet</h3>
+        <p>no sets match what you're looking for.</p>
+    `;
+
+    noResults.style.display = "none";
+
+    if (setsList) {
+        setsList.appendChild(noResults);
+    }
+
+
+    function updateFilters() {
+
+        const searchTerm = searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
+
+        let visibleCount = 0;
+        let winCount = 0;
+        let lossCount = 0;
+
+
+        setCards.forEach(function (card) {
+
+            const resultElement =
+                card.querySelector(".set-result");
+
+            const opponentElement =
+                card.querySelector(".set-opponent strong");
+
+
+            const result =
+                resultElement
+                    ? resultElement.textContent.trim().toLowerCase()
+                    : "";
+
+            const opponent =
+                opponentElement
+                    ? opponentElement.textContent.trim().toLowerCase()
+                    : "";
+
+
+            if (result === "win") {
+                winCount++;
+            }
+
+            if (result === "loss") {
+                lossCount++;
+            }
+
+
+            const matchesFilter =
+                currentFilter === "all" ||
+                result === currentFilter;
+
+
+            const matchesSearch =
+                !searchTerm ||
+                opponent.includes(searchTerm);
+
+
+            const shouldShow =
+                matchesFilter && matchesSearch;
+
+
+            card.style.display =
+                shouldShow ? "" : "none";
+
+
+            if (shouldShow) {
+                visibleCount++;
+            }
+
+        });
+
+
+        /*
+         * Update filter numbers
+         */
+
+        if (allFilter) {
+            const count = allFilter.querySelector("span");
+
+            if (count) {
+                count.textContent = setCards.length;
+            }
+        }
+
+        if (winsFilter) {
+            const count = winsFilter.querySelector("span");
+
+            if (count) {
+                count.textContent = winCount;
+            }
+        }
+
+        if (lossesFilter) {
+            const count = lossesFilter.querySelector("span");
+
+            if (count) {
+                count.textContent = lossCount;
+            }
+        }
+
+
+        /*
+         * Update set count
+         */
+
+        if (setCount) {
+
+            setCount.textContent =
+                visibleCount === 1
+                    ? "1 set"
+                    : `${visibleCount} sets`;
+
+        }
+
+
+        /*
+         * Show empty state only when
+         * nothing matches.
+         */
+
+        if (noResults) {
+
+            noResults.style.display =
+                visibleCount === 0
+                    ? "flex"
+                    : "none";
+
+        }
+
+    }
+
+
+    /*
+     * Filter buttons
+     */
+
+    filterButtons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const text =
+                    button.textContent
+                        .trim()
+                        .toLowerCase();
+
+                currentFilter = text;
+
+
+                filterButtons.forEach(
+                    function (filter) {
+                        filter.classList.remove("active");
+                    }
+                );
+
+                button.classList.add("active");
+
+                updateFilters();
+
+            }
+        );
+
+    });
+
+
+    /*
+     * Search
+     */
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+                updateFilters();
+            }
+        );
+
+    }
+
+
+    /*
+     * Initial state
+     */
+
+    updateFilters();
+
+}
