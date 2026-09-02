@@ -8,7 +8,6 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_unLqx7_o_zlF0bTWtfOgZg_qqJ55uNb";
 
-
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
@@ -34,12 +33,12 @@ const subtitles = [
     "probably should be training",
     "what am i doing bro",
     "could've been worse",
-    "by the 9 we stroke it",
+    "don't ask",
     "i fw furries",
     "just keeping track",
     "another one for the books",
     "tsb activities",
-    "numbers",
+    "numbers unfortunately",
     "yeah we did this",
     "professional keyboard masher",
     "fishnets>>thigh socks"
@@ -53,6 +52,9 @@ const titleElement =
     document.querySelector(
         ".brand h1, .sets-title h1"
     );
+
+
+let subtitleStarted = false;
 
 
 function getRandomSubtitle() {
@@ -70,10 +72,17 @@ function typeSubtitle(text) {
 
     if (!subtitleElement) return;
 
+    subtitleStarted = true;
+
     subtitleElement.textContent = "";
 
-    subtitleElement.classList.remove("finished");
-    subtitleElement.classList.add("typing");
+    subtitleElement.classList.remove(
+        "finished"
+    );
+
+    subtitleElement.classList.add(
+        "typing"
+    );
 
     let index = 0;
 
@@ -99,7 +108,9 @@ function typeSubtitle(text) {
                 character === "!" ||
                 character === "?"
             ) {
+
                 typingSpeed = 180;
+
             }
 
 
@@ -128,9 +139,22 @@ function typeSubtitle(text) {
 }
 
 
+/*
+ * Start the subtitle after the title.
+ *
+ * The timeout is a fallback for browsers
+ * that restore the page from cache and skip
+ * the animationend event.
+ */
+
 function startSubtitleAnimation() {
 
     if (!subtitleElement) return;
+
+    if (subtitleStarted) return;
+
+
+    subtitleElement.style.opacity = "1";
 
 
     if (
@@ -139,17 +163,14 @@ function startSubtitleAnimation() {
         )
     ) {
 
-        subtitleElement.style.opacity = "1";
-
         typeSubtitle(
             "every fight and every score"
         );
 
         return;
+
     }
 
-
-    subtitleElement.style.opacity = "1";
 
     typeSubtitle(
         getRandomSubtitle()
@@ -175,6 +196,16 @@ if (titleElement && subtitleElement) {
 
         },
         { once: true }
+    );
+
+
+    setTimeout(
+        function () {
+
+            startSubtitleAnimation();
+
+        },
+        950
     );
 
 } else if (subtitleElement) {
@@ -204,14 +235,19 @@ function formatDate(dateString) {
 
     if (!dateString) return "—";
 
+
     const date =
         new Date(
             `${dateString}T00:00:00`
         );
 
+
     if (Number.isNaN(date.getTime())) {
+
         return dateString;
+
     }
+
 
     return date.toLocaleDateString(
         "en-GB",
@@ -229,18 +265,22 @@ function getToday() {
 
     const now = new Date();
 
+
     const year =
         now.getFullYear();
+
 
     const month =
         String(
             now.getMonth() + 1
         ).padStart(2, "0");
 
+
     const day =
         String(
             now.getDate()
         ).padStart(2, "0");
+
 
     return `${year}-${month}-${day}`;
 
@@ -248,7 +288,7 @@ function getToday() {
 
 
 /* ============================= */
-/* LOAD ALL SETS */
+/* FETCH SETS */
 /* ============================= */
 
 async function fetchSets() {
@@ -256,21 +296,22 @@ async function fetchSets() {
     const {
         data,
         error
-    } = await supabaseClient
-        .from("sets")
-        .select("*")
-        .order(
-            "played_at",
-            {
-                ascending: false
-            }
-        )
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
+    } =
+        await supabaseClient
+            .from("sets")
+            .select("*")
+            .order(
+                "played_at",
+                {
+                    ascending: false
+                }
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
 
 
     if (error) {
@@ -279,6 +320,7 @@ async function fetchSets() {
             "Failed to load sets:",
             error
         );
+
 
         return {
             data: [],
@@ -307,13 +349,15 @@ async function loadHomePage() {
             "stat-sets"
         );
 
+
     if (!statSets) return;
 
 
     const {
         data: sets,
         error
-    } = await fetchSets();
+    } =
+        await fetchSets();
 
 
     if (error) return;
@@ -338,22 +382,26 @@ async function loadHomePage() {
 
 
     let playerRounds = 0;
+
     let opponentRounds = 0;
 
 
-    sets.forEach(function (set) {
+    sets.forEach(
+        function (set) {
 
-        playerRounds +=
-            Number(
-                set.player_score || 0
-            );
+            playerRounds +=
+                Number(
+                    set.player_score || 0
+                );
 
-        opponentRounds +=
-            Number(
-                set.opponent_score || 0
-            );
 
-    });
+            opponentRounds +=
+                Number(
+                    set.opponent_score || 0
+                );
+
+        }
+    );
 
 
     statSets.textContent =
@@ -364,6 +412,7 @@ async function loadHomePage() {
         document.getElementById(
             "stat-record"
         );
+
 
     if (recordElement) {
 
@@ -378,13 +427,16 @@ async function loadHomePage() {
             "stat-winrate"
         );
 
+
     if (winrateElement) {
 
         winrateElement.textContent =
             totalSets === 0
                 ? "—"
                 : `${(
-                    wins / totalSets * 100
+                    wins /
+                    totalSets *
+                    100
                 ).toFixed(1)}%`;
 
     }
@@ -394,6 +446,7 @@ async function loadHomePage() {
         document.getElementById(
             "stat-rounds"
         );
+
 
     if (roundsElement) {
 
@@ -422,14 +475,9 @@ async function loadHomePage() {
             recent.map(
                 function (set) {
 
-                    const resultClass =
-                        set.result === "win"
-                            ? "win"
-                            : "loss";
-
-
                     return `
                         <div class="recent-item">
+
                             <span>
                                 ${escapeHTML(
                                     set.result
@@ -457,6 +505,7 @@ async function loadHomePage() {
                                     set.played_at
                                 )}
                             </small>
+
                         </div>
                     `;
 
@@ -483,35 +532,42 @@ if (
             ".filter"
         );
 
+
     const searchInput =
         document.querySelector(
             ".search-wrapper input"
         );
+
 
     const setCount =
         document.querySelector(
             ".set-count span"
         );
 
+
     const allFilter =
         document.querySelector(
             '.filter[data-filter="all"]'
         );
+
 
     const winsFilter =
         document.querySelector(
             '.filter[data-filter="win"]'
         );
 
+
     const lossesFilter =
         document.querySelector(
             '.filter[data-filter="loss"]'
         );
 
+
     const setsList =
         document.getElementById(
             "sets-list"
         );
+
 
     const loadingState =
         document.getElementById(
@@ -524,30 +580,49 @@ if (
     let currentFilter = "all";
 
 
+    /* ============================= */
+    /* EMPTY STATE */
+    /* ============================= */
+
     const noResults =
         document.createElement(
             "div"
         );
 
+
     noResults.className =
         "empty-state";
 
+
     noResults.innerHTML = `
         <div class="empty-icon">—</div>
-        <h3>nothing here yet</h3>
-        <p>no sets match what you're looking for.</p>
+
+        <h3>
+            nothing here yet
+        </h3>
+
+        <p>
+            no sets match what you're looking for.
+        </p>
     `;
+
 
     noResults.style.display =
         "none";
 
 
     if (setsList) {
+
         setsList.appendChild(
             noResults
         );
+
     }
 
+
+    /* ============================= */
+    /* RENDER SETS */
+    /* ============================= */
 
     function renderSets() {
 
@@ -617,17 +692,17 @@ if (
             );
 
 
-        const cards =
-            setsList.querySelectorAll(
+        setsList
+            .querySelectorAll(
                 ".set-card"
+            )
+            .forEach(
+                function (card) {
+
+                    card.remove();
+
+                }
             );
-
-
-        cards.forEach(
-            function (card) {
-                card.remove();
-            }
-        );
 
 
         filteredSets.forEach(
@@ -653,19 +728,26 @@ if (
                     <div class="set-card-top">
 
                         <div class="set-opponent">
-                            <span>vs</span>
+
+                            <span>
+                                vs
+                            </span>
 
                             <strong>
                                 ${escapeHTML(
                                     set.opponent
                                 )}
                             </strong>
+
                         </div>
 
+
                         <div class="set-result ${result}">
+
                             ${escapeHTML(
                                 set.result
                             )}
+
                         </div>
 
                     </div>
@@ -677,7 +759,9 @@ if (
                             set.player_score || 0
                         )}
 
-                        <span>—</span>
+                        <span>
+                            —
+                        </span>
 
                         ${Number(
                             set.opponent_score || 0
@@ -689,32 +773,47 @@ if (
                     <div class="set-card-details">
 
                         <div class="set-detail">
-                            <span>format</span>
+
+                            <span>
+                                format
+                            </span>
+
                             <strong>
                                 ${escapeHTML(
                                     set.format
                                 )}
                             </strong>
+
                         </div>
 
 
                         <div class="set-detail">
-                            <span>character</span>
+
+                            <span>
+                                character
+                            </span>
+
                             <strong>
                                 ${escapeHTML(
                                     set.character
                                 )}
                             </strong>
+
                         </div>
 
 
                         <div class="set-detail">
-                            <span>date</span>
+
+                            <span>
+                                date
+                            </span>
+
                             <strong>
                                 ${formatDate(
                                     set.played_at
                                 )}
                             </strong>
+
                         </div>
 
                     </div>
@@ -746,30 +845,54 @@ if (
 
         if (allFilter) {
 
-            allFilter
-                .querySelector("span")
-                .textContent =
-                allSets.length;
+            const count =
+                allFilter.querySelector(
+                    "span"
+                );
+
+
+            if (count) {
+
+                count.textContent =
+                    allSets.length;
+
+            }
 
         }
 
 
         if (winsFilter) {
 
-            winsFilter
-                .querySelector("span")
-                .textContent =
-                wins;
+            const count =
+                winsFilter.querySelector(
+                    "span"
+                );
+
+
+            if (count) {
+
+                count.textContent =
+                    wins;
+
+            }
 
         }
 
 
         if (lossesFilter) {
 
-            lossesFilter
-                .querySelector("span")
-                .textContent =
-                losses;
+            const count =
+                lossesFilter.querySelector(
+                    "span"
+                );
+
+
+            if (count) {
+
+                count.textContent =
+                    losses;
+
+            }
 
         }
 
@@ -792,29 +915,53 @@ if (
     }
 
 
+    /* ============================= */
+    /* LOAD SETS */
+    /* ============================= */
+
     async function loadSetsPage() {
 
         const {
             data,
             error
-        } = await fetchSets();
+        } =
+            await fetchSets();
 
 
         if (loadingState) {
+
             loadingState.remove();
+
         }
 
 
         if (error) {
 
+            console.error(
+                "Set loading error:",
+                error
+            );
+
+
             noResults.innerHTML = `
                 <div class="empty-icon">!</div>
-                <h3>couldn't load sets</h3>
-                <p>something went wrong talking to the archive.</p>
+
+                <h3>
+                    couldn't load sets
+                </h3>
+
+                <p>
+                    ${escapeHTML(
+                        error.message ||
+                        "something went wrong."
+                    )}
+                </p>
             `;
+
 
             noResults.style.display =
                 "flex";
+
 
             return;
 
@@ -831,7 +978,7 @@ if (
 
 
     /* ============================= */
-    /* FILTERS */
+    /* FILTER BUTTONS */
     /* ============================= */
 
     filterButtons.forEach(
@@ -848,9 +995,11 @@ if (
 
                     filterButtons.forEach(
                         function (filter) {
+
                             filter.classList.remove(
                                 "active"
                             );
+
                         }
                     );
 
@@ -878,7 +1027,9 @@ if (
         searchInput.addEventListener(
             "input",
             function () {
+
                 renderSets();
+
             }
         );
 
@@ -886,23 +1037,26 @@ if (
 
 
     /* ============================= */
-    /* AUTH UI */
-/* ============================= */
+    /* AUTH ELEMENTS */
+    /* ============================= */
 
     const loginButton =
         document.getElementById(
             "login-button"
         );
 
+
     const ownerTools =
         document.getElementById(
             "owner-tools"
         );
 
+
     const addSetButton =
         document.getElementById(
             "add-set-button"
         );
+
 
     const logoutButton =
         document.getElementById(
@@ -915,6 +1069,7 @@ if (
             "login-modal"
         );
 
+
     const addSetModal =
         document.getElementById(
             "add-set-modal"
@@ -925,6 +1080,7 @@ if (
         document.getElementById(
             "login-form"
         );
+
 
     const addSetForm =
         document.getElementById(
@@ -937,11 +1093,16 @@ if (
             "login-error"
         );
 
+
     const addSetError =
         document.getElementById(
             "add-set-error"
         );
 
+
+    /* ============================= */
+    /* MODALS */
+    /* ============================= */
 
     function openModal(modal) {
 
@@ -949,101 +1110,4 @@ if (
 
         modal.classList.add(
             "open"
-        );
-
-    }
-
-
-    function closeModal(modal) {
-
-        if (!modal) return;
-
-        modal.classList.remove(
-            "open"
-        );
-
-    }
-
-
-    document
-        .querySelectorAll(
-            "[data-close-modal]"
-        )
-        .forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        closeModal(
-                            button.closest(
-                                ".modal-backdrop"
-                            )
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            ".modal-backdrop"
-        )
-        .forEach(
-            function (backdrop) {
-
-                backdrop.addEventListener(
-                    "click",
-                    function (event) {
-
-                        if (
-                            event.target ===
-                            backdrop
-                        ) {
-
-                            closeModal(
-                                backdrop
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        );
-
-
-    if (loginButton) {
-
-        loginButton.addEventListener(
-            "click",
-            function () {
-
-                if (loginError) {
-                    loginError.textContent =
-                        "";
-                }
-
-                openModal(
-                    loginModal
-                );
-
-            }
-        );
-
-    }
-
-
-    if (addSetButton) {
-
-        addSetButton.addEventListener(
-            "click",
-            function () {
-
-                if (addSetError) {
-                    addSetError.text
+       
