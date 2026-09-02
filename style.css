@@ -127,7 +127,9 @@ body {
 }
 
 
-/* Typewriter caret */
+/* ============================= */
+/* TYPEWRITER CARET */
+/* ============================= */
 
 .brand p.typing::after {
     content: "";
@@ -157,6 +159,34 @@ body {
 }
 
 .brand p.finished::after {
+    display: none;
+}
+
+
+/* Sets page typewriter caret */
+
+.sets-title p.typing::after {
+    content: "";
+
+    display: inline-block;
+
+    width: 1px;
+    height: 12px;
+
+    margin-left: 4px;
+
+    vertical-align: -2px;
+
+    background: #555;
+
+    animation:
+        caretBlink
+        800ms
+        steps(1, end)
+        infinite;
+}
+
+.sets-title p.finished::after {
     display: none;
 }
 
@@ -583,13 +613,35 @@ nav a.active::after {
     transition: color 180ms ease;
 }
 
-.filter:hover {
-    color: #aaa;
-    transform: translateY(-1px);
+
+/*
+ * Hover only applies to devices that
+ * actually support hover.
+ *
+ * Prevents mobile taps from leaving
+ * the wrong filter visually highlighted.
+ */
+
+@media (hover: hover) {
+
+    .filter:hover {
+        color: #aaa;
+        transform: translateY(-1px);
+    }
+
+    .filter:hover span {
+        color: #666;
+    }
+
 }
 
-.filter:hover span {
-    color: #666;
+.filter:focus {
+    outline: none;
+}
+
+.filter:focus-visible {
+    outline: 1px solid #303030;
+    outline-offset: 2px;
 }
 
 .filter.active {
@@ -643,10 +695,6 @@ nav a.active::after {
     transform: translateY(-2px);
 }
 
-.set-card + .set-card {
-    margin-top: 12px;
-}
-
 
 /* Top row */
 
@@ -689,7 +737,7 @@ nav a.active::after {
 }
 
 .set-result.loss {
-    color: #555;
+    color: #666;
 }
 
 
@@ -819,241 +867,6 @@ nav a.active::after {
 
 
 /* ============================= */
-/* OWNER PANEL */
-/* ============================= */
-
-.owner-panel {
-    display: flex;
-    justify-content: flex-end;
-
-    margin-top: 20px;
-}
-
-.owner-tools {
-    display: none;
-    gap: 8px;
-}
-
-.owner-button {
-    background: #101010;
-    border: 1px solid #202020;
-    border-radius: 9px;
-
-    padding: 8px 12px;
-
-    color: #777;
-
-    font-family: inherit;
-    font-size: 10px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        color 180ms ease,
-        background 180ms ease,
-        border-color 180ms ease,
-        transform 180ms ease;
-}
-
-.owner-button:hover {
-    color: #ddd;
-    background: #121212;
-    border-color: #303030;
-    transform: translateY(-1px);
-}
-
-.owner-button.subtle {
-    color: #4d4d4d;
-}
-
-
-/* ============================= */
-/* MODALS */
-/* ============================= */
-
-.modal-backdrop {
-    position: fixed;
-
-    inset: 0;
-
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    background: rgba(0, 0, 0, 0.72);
-
-    z-index: 100;
-
-    backdrop-filter: blur(8px);
-}
-
-.modal-backdrop.open {
-    display: flex;
-}
-
-.modal {
-    width: min(430px, 100%);
-
-    background: #0c0c0c;
-    border: 1px solid #202020;
-    border-radius: 16px;
-
-    padding: 23px;
-
-    box-shadow:
-        0 20px 70px rgba(0, 0, 0, 0.45);
-}
-
-.modal-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    margin-bottom: 22px;
-}
-
-.modal-header .eyebrow {
-    color: #444;
-
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-
-    text-transform: uppercase;
-}
-
-.modal-header h2 {
-    margin-top: 7px;
-
-    color: #ededed;
-
-    font-size: 23px;
-    font-weight: 650;
-    letter-spacing: -0.8px;
-}
-
-.modal-close {
-    width: 30px;
-    height: 30px;
-
-    background: transparent;
-    border: 1px solid #202020;
-    border-radius: 8px;
-
-    color: #555;
-
-    font-family: inherit;
-    font-size: 17px;
-
-    cursor: pointer;
-
-    transition:
-        color 180ms ease,
-        border-color 180ms ease,
-        background 180ms ease;
-}
-
-.modal-close:hover {
-    color: #ddd;
-    border-color: #303030;
-    background: #111;
-}
-
-.modal form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.modal label {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-
-    color: #555;
-
-    font-size: 9px;
-    font-weight: 700;
-
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.modal input,
-.modal select {
-    width: 100%;
-    height: 40px;
-
-    background: #101010;
-    border: 1px solid #202020;
-    border-radius: 9px;
-
-    padding: 0 12px;
-
-    color: #eee;
-
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 450;
-
-    outline: none;
-
-    transition:
-        border-color 180ms ease,
-        background 180ms ease;
-}
-
-.modal input:focus,
-.modal select:focus {
-    background: #121212;
-    border-color: #383838;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.form-error {
-    min-height: 15px;
-
-    color: #777;
-
-    font-size: 10px;
-    line-height: 1.4;
-}
-
-.form-submit {
-    height: 40px;
-
-    background: #ededed;
-    border: 1px solid #ededed;
-    border-radius: 9px;
-
-    color: #090909;
-
-    font-family: inherit;
-    font-size: 10px;
-    font-weight: 700;
-
-    cursor: pointer;
-
-    transition:
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
-.form-submit:hover {
-    opacity: 0.88;
-    transform: translateY(-1px);
-}
-
-
-/* ============================= */
 /* ACCESSIBILITY */
 /* ============================= */
 
@@ -1063,13 +876,15 @@ nav a.active::after {
     .brand h1,
     .sets-title h1,
     .brand p,
+    .sets-title p,
     nav a.active::after {
         animation: none;
         opacity: 1;
         transform: none;
     }
 
-    .brand p.typing::after {
+    .brand p.typing::after,
+    .sets-title p.typing::after {
         animation: none;
     }
 
@@ -1078,9 +893,7 @@ nav a.active::after {
     .search-wrapper input,
     .filter,
     nav a,
-    .set-card,
-    .owner-button,
-    .form-submit {
+    .set-card {
         transition: none;
     }
 }
@@ -1177,16 +990,4 @@ nav a.active::after {
         min-height: 230px;
         padding: 25px;
     }
-
-    .owner-panel {
-        margin-top: 16px;
-    }
-
-    .modal {
-        padding: 19px;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    }
+}
