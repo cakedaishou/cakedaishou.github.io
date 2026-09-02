@@ -1167,86 +1167,65 @@ function createFeaturedCard(set) {
 ========================= */
 
 async function populateFeatSelect() {
-    const select =
-        document.getElementById(
-            "feat-set-select"
-        );
+    const select = document.getElementById("feat-set-select");
 
     if (!select) {
         return;
     }
 
-    const featuredIds =
-        new Set(
-            (window.featuredSets || [])
-                .map(
-                    (featured) =>
-                        String(featured.set_id)
-                )
-        );
+    const sets = window.allSets || [];
+    const featuredIds = new Set(
+        (window.featuredSets || []).map(
+            (featured) => String(featured.set_id)
+        )
+    );
 
-    const availableSets =
-        (window.allSets || [])
-            .filter(
-                (set) =>
-                    !featuredIds.has(
-                        String(set.id)
-                    )
-            );
+    const availableSets = sets.filter(
+        (set) => !featuredIds.has(String(set.id))
+    );
 
     if (availableSets.length === 0) {
         select.innerHTML = `
             <option value="">
-                all sets are already featured
+                no sets available
             </option>
         `;
 
+        select.disabled = true;
         return;
     }
 
+    select.disabled = false;
+
     select.innerHTML = `
-        <option value="">
+        <option value="" selected disabled>
             choose a set...
         </option>
 
-        ${availableSets
-            .map((set) => {
-                const opponent =
-                    escapeHtml(
-                        set.opponent ||
-                            "unknown"
-                    );
+        ${availableSets.map((set) => {
+            const opponent = escapeHtml(
+                set.opponent || "unknown"
+            );
 
-                const result =
-                    set.result === "win"
-                        ? "W"
-                        : "L";
+            const result =
+                set.result === "win" ? "W" : "L";
 
-                const score =
-                    `${Number(
-                        set.player_score
-                    ) || 0}-${Number(
-                        set.opponent_score
-                    ) || 0}`;
+            const playerScore =
+                Number(set.player_score) || 0;
 
-                const date =
-                    set.played_at
-                        ? formatDate(
-                            set.played_at
-                        )
-                        : "—";
+            const opponentScore =
+                Number(set.opponent_score) || 0;
 
-                return `
-                    <option
-                        value="${escapeHtml(
-                            String(set.id)
-                        )}"
-                    >
-                        ${result} vs ${opponent} · ${score} · ${date}
-                    </option>
-                `;
-            })
-            .join("")}
+            const date = set.played_at
+                ? formatDate(set.played_at)
+                : "—";
+
+            return `
+                <option value="${escapeHtml(String(set.id))}">
+                    ${result} vs ${opponent} · ${playerScore}-${opponentScore} · ${date}
+                </option>
+            `;
+        }).join("")}
     `;
 }
 
