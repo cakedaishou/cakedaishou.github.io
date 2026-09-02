@@ -41,6 +41,13 @@ let lastStats = {
     roundsLost: null
 };
 
+window.allSets = [];
+
+
+/* =========================
+   START
+========================= */
+
 document.addEventListener("DOMContentLoaded", () => {
     startApp();
 });
@@ -53,19 +60,21 @@ async function startApp() {
     setupAddSetForm();
     setupDateInput();
 
-    if (window.supabase) {
-        supabaseClient = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
-
-        setupAuth();
-        await updateAuthUI();
-        await loadSets();
-    } else {
+    if (!window.supabase) {
         console.error("Supabase library failed to load.");
         showLoadingError("supabase failed to load");
+        return;
     }
+
+    supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+    setupAuth();
+
+    await updateAuthUI();
+    await loadSets();
 }
 
 
@@ -80,11 +89,14 @@ function setupTypewriter() {
         return;
     }
 
-    const isSetsPage = document.body.classList.contains("sets-page");
+    const isSetsPage =
+        document.body.classList.contains("sets-page");
 
     const text = isSetsPage
         ? "every fight and every score"
-        : subtitles[Math.floor(Math.random() * subtitles.length)];
+        : subtitles[
+            Math.floor(Math.random() * subtitles.length)
+        ];
 
     element.textContent = "";
     element.style.opacity = "1";
@@ -111,8 +123,11 @@ function setupTypewriter() {
 ========================= */
 
 function setupModals() {
-    const loginButton = document.getElementById("login-button");
-    const addSetButton = document.getElementById("add-set-button");
+    const loginButton =
+        document.getElementById("login-button");
+
+    const addSetButton =
+        document.getElementById("add-set-button");
 
     if (loginButton) {
         loginButton.addEventListener("click", () => {
@@ -126,23 +141,28 @@ function setupModals() {
         });
     }
 
-    document.querySelectorAll("[data-close-modal]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const modal = button.closest(".modal-backdrop");
+    document
+        .querySelectorAll("[data-close-modal]")
+        .forEach((button) => {
+            button.addEventListener("click", () => {
+                const modal =
+                    button.closest(".modal-backdrop");
 
-            if (modal) {
-                closeModal(modal.id);
-            }
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
         });
-    });
 
-    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
-        backdrop.addEventListener("click", (event) => {
-            if (event.target === backdrop) {
-                closeModal(backdrop.id);
-            }
+    document
+        .querySelectorAll(".modal-backdrop")
+        .forEach((backdrop) => {
+            backdrop.addEventListener("click", (event) => {
+                if (event.target === backdrop) {
+                    closeModal(backdrop.id);
+                }
+            });
         });
-    });
 
     document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") {
@@ -189,19 +209,31 @@ function closeModal(id) {
 ========================= */
 
 function setupAuth() {
-    const loginForm = document.getElementById("login-form");
-    const logoutButton = document.getElementById("logout-button");
+    const loginForm =
+        document.getElementById("login-form");
+
+    const logoutButton =
+        document.getElementById("logout-button");
 
     if (loginForm) {
-        loginForm.addEventListener("submit", handleLogin);
+        loginForm.addEventListener(
+            "submit",
+            handleLogin
+        );
     }
 
     if (logoutButton) {
-        logoutButton.addEventListener("click", handleLogout);
+        logoutButton.addEventListener(
+            "click",
+            handleLogout
+        );
+    }
+
+    if (!supabaseClient) {
+        return;
     }
 
     supabaseClient.auth.onAuthStateChange(() => {
-        // Do not await Supabase calls inside this callback.
         setTimeout(() => {
             updateAuthUI();
             loadSets();
@@ -214,8 +246,11 @@ async function updateAuthUI() {
         return;
     }
 
-    const loginButton = document.getElementById("login-button");
-    const ownerTools = document.getElementById("owner-tools");
+    const loginButton =
+        document.getElementById("login-button");
+
+    const ownerTools =
+        document.getElementById("owner-tools");
 
     const {
         data: { session },
@@ -223,7 +258,10 @@ async function updateAuthUI() {
     } = await supabaseClient.auth.getSession();
 
     if (error) {
-        console.error("Could not get session:", error);
+        console.error(
+            "Could not get session:",
+            error
+        );
         return;
     }
 
@@ -249,17 +287,31 @@ async function updateAuthUI() {
 async function handleLogin(event) {
     event.preventDefault();
 
-    const emailInput = document.getElementById("login-email");
-    const passwordInput = document.getElementById("login-password");
-    const errorElement = document.getElementById("login-error");
-    const submitButton = event.submitter;
+    if (!supabaseClient) {
+        return;
+    }
+
+    const emailInput =
+        document.getElementById("login-email");
+
+    const passwordInput =
+        document.getElementById("login-password");
+
+    const errorElement =
+        document.getElementById("login-error");
+
+    const submitButton =
+        event.submitter;
 
     if (!emailInput || !passwordInput) {
         return;
     }
 
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
+    const email =
+        emailInput.value.trim();
+
+    const password =
+        passwordInput.value;
 
     if (errorElement) {
         errorElement.textContent = "";
@@ -270,16 +322,21 @@ async function handleLogin(event) {
         submitButton.textContent = "signing in...";
     }
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
+    const { error } =
+        await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
 
     if (error) {
-        console.error("Login failed:", error);
+        console.error(
+            "Login failed:",
+            error
+        );
 
         if (errorElement) {
-            errorElement.textContent = error.message;
+            errorElement.textContent =
+                error.message;
         }
 
         if (submitButton) {
@@ -290,7 +347,10 @@ async function handleLogin(event) {
         return;
     }
 
-    document.getElementById("login-form")?.reset();
+    document
+        .getElementById("login-form")
+        ?.reset();
+
     closeModal("login-modal");
 
     if (submitButton) {
@@ -300,10 +360,18 @@ async function handleLogin(event) {
 }
 
 async function handleLogout() {
-    const { error } = await supabaseClient.auth.signOut();
+    if (!supabaseClient) {
+        return;
+    }
+
+    const { error } =
+        await supabaseClient.auth.signOut();
 
     if (error) {
-        console.error("Logout failed:", error);
+        console.error(
+            "Logout failed:",
+            error
+        );
         return;
     }
 
@@ -317,31 +385,55 @@ async function handleLogout() {
 ========================= */
 
 async function loadSets() {
-    const list = document.getElementById("sets-list");
-
-    if (!list || !supabaseClient) {
+    if (!supabaseClient) {
         return;
     }
 
-    const { data, error } = await supabaseClient
-        .from("sets")
-        .select("*")
-        .order("played_at", { ascending: false })
-        .order("created_at", { ascending: false });
+    const list =
+        document.getElementById("sets-list");
+
+    const { data, error } =
+        await supabaseClient
+            .from("sets")
+            .select("*")
+            .order("played_at", {
+                ascending: false
+            })
+            .order("created_at", {
+                ascending: false
+            });
 
     if (error) {
-        console.error("Could not load sets:", error);
+        console.error(
+            "Could not load sets:",
+            error
+        );
 
-        showLoadingError("couldn't load the archive");
+        if (list) {
+            showLoadingError(
+                "couldn't load the archive"
+            );
+        }
+
         return;
     }
 
     window.allSets = data || [];
 
-    updateStats(window.allSets);
-    updateFilterCounts(window.allSets);
+    /*
+        IMPORTANT:
 
-    renderSets();
+        The homepage does not have a #sets-list,
+        so stats must be updated regardless of
+        which page we're currently on.
+    */
+
+    updateStats(window.allSets);
+
+    if (list) {
+        updateFilterCounts(window.allSets);
+        renderSets();
+    }
 }
 
 
@@ -350,27 +442,37 @@ async function loadSets() {
 ========================= */
 
 function renderSets() {
-    const list = document.getElementById("sets-list");
+    const list =
+        document.getElementById("sets-list");
 
     if (!list) {
         return;
     }
 
-    const searchInput = document.querySelector(".search-wrapper input");
-    const searchTerm = searchInput
-        ? searchInput.value.trim().toLowerCase()
-        : "";
+    const searchInput =
+        document.querySelector(
+            ".search-wrapper input"
+        );
+
+    const searchTerm =
+        searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
 
     const activeFilter =
-        document.querySelector(".filter.active")?.dataset.filter || "all";
+        document.querySelector(
+            ".filter.active"
+        )?.dataset.filter || "all";
 
-    const allSets = window.allSets || [];
+    const allSets =
+        window.allSets || [];
 
     let filtered = allSets;
 
     if (activeFilter !== "all") {
         filtered = filtered.filter(
-            (set) => set.result === activeFilter
+            (set) =>
+                set.result === activeFilter
         );
     }
 
@@ -385,7 +487,9 @@ function renderSets() {
             ]
                 .filter(Boolean)
                 .some((value) =>
-                    String(value).toLowerCase().includes(searchTerm)
+                    String(value)
+                        .toLowerCase()
+                        .includes(searchTerm)
                 );
         });
     }
@@ -394,8 +498,20 @@ function renderSets() {
         list.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">—</div>
-                <h3>${allSets.length ? "nothing found" : "no sets yet"}</h3>
-                <p>${allSets.length ? "try another search or filter..." : "the archive is empty for now..."}</p>
+                <h3>
+                    ${
+                        allSets.length
+                            ? "nothing found"
+                            : "no sets yet"
+                    }
+                </h3>
+                <p>
+                    ${
+                        allSets.length
+                            ? "try another search or filter..."
+                            : "the archive is empty for now..."
+                    }
+                </p>
             </div>
         `;
 
@@ -407,26 +523,50 @@ function renderSets() {
         .map((set) => createSetCard(set))
         .join("");
 
-    updateSetCount(filtered.length);
+    updateSetCount(
+        filtered.length
+    );
 }
 
 function createSetCard(set) {
-    const opponent = escapeHtml(set.opponent || "unknown");
-    const result = escapeHtml(set.result || "");
-    const format = escapeHtml(set.format || "—");
-    const character = escapeHtml(set.character || "—");
+    const opponent =
+        escapeHtml(
+            set.opponent || "unknown"
+        );
 
-    const playerScore = Number.isFinite(Number(set.player_score))
-        ? Number(set.player_score)
-        : 0;
+    const result =
+        escapeHtml(
+            set.result || ""
+        );
 
-    const opponentScore = Number.isFinite(Number(set.opponent_score))
-        ? Number(set.opponent_score)
-        : 0;
+    const format =
+        escapeHtml(
+            set.format || "—"
+        );
 
-    const playedAt = set.played_at
-        ? formatDate(set.played_at)
-        : "—";
+    const character =
+        escapeHtml(
+            set.character || "—"
+        );
+
+    const playerScore =
+        Number.isFinite(
+            Number(set.player_score)
+        )
+            ? Number(set.player_score)
+            : 0;
+
+    const opponentScore =
+        Number.isFinite(
+            Number(set.opponent_score)
+        )
+            ? Number(set.opponent_score)
+            : 0;
+
+    const playedAt =
+        set.played_at
+            ? formatDate(set.played_at)
+            : "—";
 
     const resultLabel =
         result === "win"
@@ -435,15 +575,20 @@ function createSetCard(set) {
 
     return `
         <article class="set-card">
+
             <div class="set-card-top">
+
                 <div class="set-opponent">
                     <span>vs</span>
-                    <strong>${opponent}</strong>
+                    <strong>
+                        ${opponent}
+                    </strong>
                 </div>
 
                 <div class="set-result ${resultLabel}">
                     ${resultLabel}
                 </div>
+
             </div>
 
             <div class="set-score">
@@ -470,6 +615,7 @@ function createSetCard(set) {
                 </div>
 
             </div>
+
         </article>
     `;
 }
@@ -480,48 +626,68 @@ function createSetCard(set) {
 ========================= */
 
 function setupFilters() {
-    document.querySelectorAll(".filter").forEach((button) => {
-        button.addEventListener("click", () => {
-            document
-                .querySelectorAll(".filter")
-                .forEach((filter) => {
-                    filter.classList.remove("active");
-                });
+    document
+        .querySelectorAll(".filter")
+        .forEach((button) => {
 
-            button.classList.add("active");
+            button.addEventListener(
+                "click",
+                () => {
 
-            renderSets();
+                    document
+                        .querySelectorAll(".filter")
+                        .forEach((filter) => {
+                            filter.classList.remove(
+                                "active"
+                            );
+                        });
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                    renderSets();
+                }
+            );
+
         });
-    });
 }
 
 function updateFilterCounts(sets) {
-    const allButton = document.querySelector(
-        '.filter[data-filter="all"] span'
-    );
+    const allButton =
+        document.querySelector(
+            '.filter[data-filter="all"] span'
+        );
 
-    const winButton = document.querySelector(
-        '.filter[data-filter="win"] span'
-    );
+    const winButton =
+        document.querySelector(
+            '.filter[data-filter="win"] span'
+        );
 
-    const lossButton = document.querySelector(
-        '.filter[data-filter="loss"] span'
-    );
+    const lossButton =
+        document.querySelector(
+            '.filter[data-filter="loss"] span'
+        );
 
     if (allButton) {
-        allButton.textContent = sets.length;
+        allButton.textContent =
+            sets.length;
     }
 
     if (winButton) {
-        winButton.textContent = sets.filter(
-            (set) => set.result === "win"
-        ).length;
+        winButton.textContent =
+            sets.filter(
+                (set) =>
+                    set.result === "win"
+            ).length;
     }
 
     if (lossButton) {
-        lossButton.textContent = sets.filter(
-            (set) => set.result === "loss"
-        ).length;
+        lossButton.textContent =
+            sets.filter(
+                (set) =>
+                    set.result === "loss"
+            ).length;
     }
 }
 
@@ -531,15 +697,21 @@ function updateFilterCounts(sets) {
 ========================= */
 
 function setupSearch() {
-    const input = document.querySelector(".search-wrapper input");
+    const input =
+        document.querySelector(
+            ".search-wrapper input"
+        );
 
     if (!input) {
         return;
     }
 
-    input.addEventListener("input", () => {
-        renderSets();
-    });
+    input.addEventListener(
+        "input",
+        () => {
+            renderSets();
+        }
+    );
 }
 
 
@@ -548,13 +720,19 @@ function setupSearch() {
 ========================= */
 
 function setupAddSetForm() {
-    const form = document.getElementById("add-set-form");
+    const form =
+        document.getElementById(
+            "add-set-form"
+        );
 
     if (!form) {
         return;
     }
 
-    form.addEventListener("submit", handleAddSet);
+    form.addEventListener(
+        "submit",
+        handleAddSet
+    );
 }
 
 async function handleAddSet(event) {
@@ -564,36 +742,56 @@ async function handleAddSet(event) {
         return;
     }
 
-    const errorElement = document.getElementById("add-set-error");
-    const submitButton = event.submitter;
+    const errorElement =
+        document.getElementById(
+            "add-set-error"
+        );
 
-    const opponent = document
-        .getElementById("set-opponent")
-        ?.value.trim();
+    const submitButton =
+        event.submitter;
 
-    const result = document
-        .getElementById("set-result")
-        ?.value;
+    const opponent =
+        document
+            .getElementById("set-opponent")
+            ?.value.trim();
 
-    const format = document
-        .getElementById("set-format")
-        ?.value.trim();
+    const result =
+        document
+            .getElementById("set-result")
+            ?.value;
 
-    const playerScore = Number(
-        document.getElementById("set-player-score")?.value
-    );
+    const format =
+        document
+            .getElementById("set-format")
+            ?.value.trim();
 
-    const opponentScore = Number(
-        document.getElementById("set-opponent-score")?.value
-    );
+    const playerScore =
+        Number(
+            document
+                .getElementById(
+                    "set-player-score"
+                )
+                ?.value
+        );
 
-    const character = document
-        .getElementById("set-character")
-        ?.value.trim();
+    const opponentScore =
+        Number(
+            document
+                .getElementById(
+                    "set-opponent-score"
+                )
+                ?.value
+        );
 
-    const playedAt = document
-        .getElementById("set-date")
-        ?.value;
+    const character =
+        document
+            .getElementById("set-character")
+            ?.value.trim();
+
+    const playedAt =
+        document
+            .getElementById("set-date")
+            ?.value;
 
     if (errorElement) {
         errorElement.textContent = "";
@@ -601,45 +799,59 @@ async function handleAddSet(event) {
 
     if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = "saving...";
+        submitButton.textContent =
+            "saving...";
     }
 
-    const { error } = await supabaseClient
-        .from("sets")
-        .insert({
-            opponent,
-            result,
-            player_score: playerScore,
-            opponent_score: opponentScore,
-            format,
-            character,
-            played_at: playedAt
-        });
+    const { error } =
+        await supabaseClient
+            .from("sets")
+            .insert({
+                opponent,
+                result,
+                player_score: playerScore,
+                opponent_score: opponentScore,
+                format,
+                character,
+                played_at: playedAt
+            });
 
     if (error) {
-        console.error("Could not add set:", error);
+        console.error(
+            "Could not add set:",
+            error
+        );
 
         if (errorElement) {
-            errorElement.textContent = error.message;
+            errorElement.textContent =
+                error.message;
         }
 
         if (submitButton) {
             submitButton.disabled = false;
-            submitButton.textContent = "save set";
+            submitButton.textContent =
+                "save set";
         }
 
         return;
     }
 
-    document.getElementById("add-set-form")?.reset();
+    document
+        .getElementById(
+            "add-set-form"
+        )
+        ?.reset();
 
     setupDateInput();
 
-    closeModal("add-set-modal");
+    closeModal(
+        "add-set-modal"
+    );
 
     if (submitButton) {
         submitButton.disabled = false;
-        submitButton.textContent = "save set";
+        submitButton.textContent =
+            "save set";
     }
 
     await loadSets();
@@ -651,73 +863,114 @@ async function handleAddSet(event) {
 ========================= */
 
 function updateStats(sets) {
-    const setsElement = document.getElementById("stat-sets");
-    const wlElement = document.getElementById("stat-wl");
-    const winrateElement = document.getElementById("stat-winrate");
-    const roundsElement = document.getElementById("stat-rounds");
+    const setsElement =
+        document.getElementById(
+            "stat-sets"
+        );
 
-    if (!document.body.classList.contains("home-page")) {
-        return;
-    }
+    const wlElement =
+        document.getElementById(
+            "stat-record"
+        );
 
-    const wins = sets.filter(
-        (set) => set.result === "win"
-    ).length;
+    const winrateElement =
+        document.getElementById(
+            "stat-winrate"
+        );
 
-    const losses = sets.filter(
-        (set) => set.result === "loss"
-    ).length;
+    const roundsElement =
+        document.getElementById(
+            "stat-rounds"
+        );
 
-    const roundsWon = sets.reduce(
-        (total, set) => {
-            const score = Number(set.player_score);
+    /*
+        No home-page class required.
+        We simply update whichever
+        stat elements actually exist.
+    */
 
-            return total + (
-                Number.isFinite(score)
-                    ? score
-                    : 0
-            );
-        },
-        0
-    );
+    const wins =
+        sets.filter(
+            (set) =>
+                set.result === "win"
+        ).length;
 
-    const roundsLost = sets.reduce(
-        (total, set) => {
-            const score = Number(set.opponent_score);
+    const losses =
+        sets.filter(
+            (set) =>
+                set.result === "loss"
+        ).length;
 
-            return total + (
-                Number.isFinite(score)
-                    ? score
-                    : 0
-            );
-        },
-        0
-    );
+    const roundsWon =
+        sets.reduce(
+            (total, set) => {
+
+                const score =
+                    Number(
+                        set.player_score
+                    );
+
+                return total + (
+                    Number.isFinite(score)
+                        ? score
+                        : 0
+                );
+            },
+            0
+        );
+
+    const roundsLost =
+        sets.reduce(
+            (total, set) => {
+
+                const score =
+                    Number(
+                        set.opponent_score
+                    );
+
+                return total + (
+                    Number.isFinite(score)
+                        ? score
+                        : 0
+                );
+            },
+            0
+        );
+
 
     /* =========================
        SETS
     ========================= */
 
     if (setsElement) {
-        if (lastStats.sets !== sets.length) {
+
+        if (
+            lastStats.sets !==
+            sets.length
+        ) {
+
             animateSetNumber(
                 setsElement,
                 sets.length
             );
 
-            lastStats.sets = sets.length;
+            lastStats.sets =
+                sets.length;
         }
     }
+
 
     /* =========================
        W / L
     ========================= */
 
     if (wlElement) {
+
         if (
             lastStats.wins !== wins ||
             lastStats.losses !== losses
         ) {
+
             typeStatistic(
                 wlElement,
                 `${wins} - ${losses}`
@@ -728,172 +981,14 @@ function updateStats(sets) {
         }
     }
 
+
     /* =========================
        WINRATE
     ========================= */
 
     if (winrateElement) {
-        if (sets.length === 0) {
-            winrateElement.textContent = "—";
-        } else {
-            const winrate =
-                (wins / sets.length) * 100;
 
-            const rounded =
-                Math.round(winrate * 10) / 10;
+        if (sets.length === 0) {
 
             winrateElement.textContent =
-                `${rounded}%`;
-        }
-    }
-
-    /* =========================
-       ROUNDS
-    ========================= */
-
-    if (roundsElement) {
-        if (
-            lastStats.roundsWon !== roundsWon ||
-            lastStats.roundsLost !== roundsLost
-        ) {
-            roundsElement.textContent =
-                `${roundsWon} - ${roundsLost}`;
-
-            lastStats.roundsWon = roundsWon;
-            lastStats.roundsLost = roundsLost;
-        }
-    }
-}
-
-
-/* =========================
-   STAT ANIMATIONS
-========================= */
-
-function animateSetNumber(element, target) {
-    if (statTimers.sets) {
-        clearInterval(statTimers.sets);
-        statTimers.sets = null;
-    }
-
-    const current = Number.parseInt(
-        element.textContent,
-        10
-    );
-
-    const start = Number.isFinite(current)
-        ? current
-        : 0;
-
-    if (start === target) {
-        element.textContent = String(target);
-        return;
-    }
-
-    if (target === 0) {
-        element.textContent = "0";
-        return;
-    }
-
-    let value = start;
-
-    const direction =
-        target > start
-            ? 1
-            : -1;
-
-    /*
-        The more sets there are,
-        the faster the counter moves.
-    */
-
-    const delay = Math.max(
-        28,
-        145 - (target * 4)
-    );
-
-    statTimers.sets = setInterval(() => {
-        value += direction;
-
-        element.textContent =
-            String(value);
-
-        if (value === target) {
-            clearInterval(statTimers.sets);
-            statTimers.sets = null;
-        }
-    }, delay);
-}
-
-
-function typeStatistic(element, text) {
-    if (statTimers.wl) {
-        clearInterval(statTimers.wl);
-        statTimers.wl = null;
-    }
-
-    element.textContent = "";
-
-    let index = 0;
-
-    statTimers.wl = setInterval(() => {
-        element.textContent += text[index];
-
-        index++;
-
-        if (index >= text.length) {
-            clearInterval(statTimers.wl);
-            statTimers.wl = null;
-        }
-    }, 50);
-}
-
-
-/* =========================
-   HELPERS
-========================= */
-
-function updateSetCount(count) {
-    const element = document.querySelector(".set-count span");
-
-    if (!element) {
-        return;
-    }
-
-    element.textContent = `${count} ${
-        count === 1 ? "set" : "sets"
-    }`;
-}
-
-function formatDate(value) {
-    const date = new Date(`${value}T00:00:00`);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-    });
-}
-
-function escapeHtml(value) {
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function setupDateInput() {
-    const input = document.getElementById("set-date");
-
-    if (!input || input.value) {
-        return;
-    }
-
-    const now = new Date();
-    const offset = now.getTimezoneOff
+                
