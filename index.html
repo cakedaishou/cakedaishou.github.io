@@ -37,7 +37,7 @@
 
             <div class="card">
                 <h3>w / l</h3>
-                <strong id="stat-record">0 - 0</strong>
+                <strong id="stat-record">0.00</strong>
             </div>
 
             <div class="card">
@@ -55,10 +55,34 @@
 
         <section class="section">
 
-            <h2>recent activities</h2>
+            <div class="section-heading">
 
-            <div class="empty" id="recent-activities">
-                nothing here yet...
+                <h2>recent activities</h2>
+
+                <div class="home-owner-tools">
+
+                    <button
+                        class="owner-button"
+                        id="add-activity-button"
+                        type="button"
+                    >
+                        add activity
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="activity-list"
+                id="recent-activities"
+            >
+
+                <div class="empty">
+                    nothing here yet...
+                </div>
+
             </div>
 
         </section>
@@ -66,18 +90,292 @@
 
         <section class="section">
 
-            <h2>feats</h2>
+            <div class="section-heading">
 
-            <div class="empty">
-                no feats yet...
+                <h2>feats</h2>
+
+                <div class="home-owner-tools">
+
+                    <button
+                        class="owner-button"
+                        id="add-feat-button"
+                        type="button"
+                    >
+                        add feat
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="feat-list"
+                id="feats-list"
+            >
+
+                <div class="empty">
+                    no feats yet...
+                </div>
+
             </div>
 
         </section>
+
+
+        <section class="owner-panel home-owner-panel">
+
+            <button
+                class="owner-button"
+                id="login-button"
+                type="button"
+            >
+                login
+            </button>
+
+
+            <div
+                class="owner-tools"
+                id="owner-tools"
+            >
+
+                <button
+                    class="owner-button subtle"
+                    id="logout-button"
+                    type="button"
+                >
+                    logout
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- LOGIN MODAL -->
+
+        <div
+            class="modal-backdrop"
+            id="login-modal"
+        >
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            owner
+                        </span>
+
+                        <h2>
+                            login
+                        </h2>
+
+                    </div>
+
+
+                    <button
+                        class="modal-close"
+                        data-close-modal
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <form id="login-form">
+
+                    <label>
+                        email
+
+                        <input
+                            id="login-email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                        >
+                    </label>
+
+
+                    <label>
+                        password
+
+                        <input
+                            id="login-password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </label>
+
+
+                    <p
+                        class="form-error"
+                        id="login-error"
+                    ></p>
+
+
+                    <button
+                        class="form-submit"
+                        type="submit"
+                    >
+                        sign in
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- ADD ACTIVITY MODAL -->
+
+        <div
+            class="modal-backdrop"
+            id="add-activity-modal"
+        >
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            activity
+                        </span>
+
+                        <h2>
+                            add activity
+                        </h2>
+
+                    </div>
+
+
+                    <button
+                        class="modal-close"
+                        data-close-modal
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <form id="add-activity-form">
+
+                    <label>
+                        activity
+
+                        <textarea
+                            id="activity-content"
+                            maxlength="500"
+                            placeholder="what happened..."
+                            required
+                        ></textarea>
+
+                    </label>
+
+
+                    <p
+                        class="form-error"
+                        id="activity-error"
+                    ></p>
+
+
+                    <button
+                        class="form-submit"
+                        type="submit"
+                    >
+                        post activity
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- ADD FEAT MODAL -->
+
+        <div
+            class="modal-backdrop"
+            id="add-feat-modal"
+        >
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            archive
+                        </span>
+
+                        <h2>
+                            add feat
+                        </h2>
+
+                    </div>
+
+
+                    <button
+                        class="modal-close"
+                        data-close-modal
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <form id="add-feat-form">
+
+                    <label>
+                        choose set
+
+                        <select
+                            id="feat-set"
+                            required
+                        >
+                        </select>
+
+                    </label>
+
+
+                    <p
+                        class="form-error"
+                        id="feat-error"
+                    ></p>
+
+
+                    <button
+                        class="form-submit"
+                        type="submit"
+                    >
+                        add feat
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
 
     </main>
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./script.js?v=4"></script>
+
 </body>
 </html>
