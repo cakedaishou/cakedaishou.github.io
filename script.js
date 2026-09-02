@@ -639,13 +639,9 @@ async function handleAddSet(event) {
 
 function updateStats(sets) {
     const setsElement = document.getElementById("stat-sets");
-    const wlElement = document.getElementById("stat-wl");
+    const wlElement = document.getElementById("stat-record");
     const winrateElement = document.getElementById("stat-winrate");
     const roundsElement = document.getElementById("stat-rounds");
-
-    if (!document.body.classList.contains("home-page")) {
-        return;
-    }
 
     const wins = sets.filter((set) => set.result === "win").length;
     const losses = sets.filter((set) => set.result === "loss").length;
@@ -661,11 +657,51 @@ function updateStats(sets) {
     );
 
     if (setsElement) {
-        setsElement.textContent = sets.length;
+        const target = sets.length;
+
+        if (target === 0) {
+            setsElement.textContent = "0";
+        } else {
+            let current = 0;
+
+            const delay = Math.max(
+                25,
+                Math.min(180, Math.round(420 / target))
+            );
+
+            function countUp() {
+                current++;
+
+                setsElement.textContent = current;
+
+                if (current < target) {
+                    setTimeout(countUp, delay);
+                }
+            }
+
+            countUp();
+        }
     }
 
     if (wlElement) {
-        wlElement.textContent = `${wins} - ${losses}`;
+        const text = `${wins} - ${losses}`;
+
+        wlElement.textContent = "";
+
+        let index = 0;
+
+        function typeRecord() {
+            if (index >= text.length) {
+                return;
+            }
+
+            wlElement.textContent += text[index];
+            index++;
+
+            setTimeout(typeRecord, 55);
+        }
+
+        typeRecord();
     }
 
     if (winrateElement) {
@@ -678,6 +714,7 @@ function updateStats(sets) {
     if (roundsElement) {
         roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
     }
+}
 }
 
 
