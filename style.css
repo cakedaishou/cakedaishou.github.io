@@ -712,3 +712,26 @@ nav a.active::after {
         120ms
         forwards;
 }
+/* Keep navigation in the exact same position on every page */
+
+.site-header {
+    position: relative;
+    min-height: 44px;
+}
+
+.site-header nav {
+    position: absolute;
+    top: 4px;
+    right: 0;
+}
+
+.sets-page .site-header {
+    justify-content: initial;
+    margin-bottom: 48px;
+}
+
+.sets-page .site-header nav {
+    position: absolute;
+    top: 4px;
+    right: 0;
+}
