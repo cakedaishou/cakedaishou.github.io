@@ -72,7 +72,7 @@ body {
 
     min-height: 44px;
 
-    margin-bottom: 70px;
+    margin-bottom: 28px;
 }
 
 .brand {
@@ -394,7 +394,24 @@ nav a.active::after {
         forwards;
 }
 
+
+/* Sets page header */
+
+.sets-page .site-header {
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+
+/* ============================= */
+/* SETS SUBTITLE */
+/* ============================= */
+
 .sets-title p {
+    position: relative;
+
+    display: inline-block;
+
     margin-top: 8px;
 
     color: #555;
@@ -402,14 +419,8 @@ nav a.active::after {
     font-size: 12px;
     font-weight: 450;
     letter-spacing: -0.05px;
-}
 
-
-/* Sets page header */
-
-.sets-page .site-header {
-    justify-content: space-between;
-    margin-bottom: 48px;
+    min-height: 18px;
 }
 
 
@@ -679,8 +690,8 @@ nav a.active::after {
 
     .container,
     .brand h1,
-    .brand p,
     .sets-title h1,
+    .brand p,
     nav a.active::after {
         animation: none;
         opacity: 1;
@@ -709,11 +720,19 @@ nav a.active::after {
 
     .container {
         width: min(94%, 600px);
-        padding: 35px 0 60px;
+        padding: 60px 0 60px;
     }
 
     .site-header {
-        margin-bottom: 55px;
+        margin-bottom: 22px;
+    }
+
+    nav {
+        gap: 18px;
+    }
+
+    nav a {
+        font-size: 11px;
     }
 
     .brand h1 {
@@ -725,12 +744,12 @@ nav a.active::after {
         font-size: 12px;
     }
 
-    nav {
-        gap: 18px;
+    .sets-title h1 {
+        font-size: 28px;
     }
 
-    nav a {
-        font-size: 11px;
+    .sets-title h2 {
+        font-size: 28px;
     }
 
     .stats {
@@ -751,14 +770,6 @@ nav a.active::after {
         gap: 25px;
     }
 
-    .sets-title h1 {
-        font-size: 28px;
-    }
-
-    .sets-title h2 {
-        font-size: 28px;
-    }
-
     .search-wrapper {
         width: 100%;
     }
@@ -774,9 +785,5 @@ nav a.active::after {
     .empty-state {
         min-height: 230px;
         padding: 25px;
-    }
-
-    .sets-page .site-header {
-        margin-bottom: 40px;
     }
 }
