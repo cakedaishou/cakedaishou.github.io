@@ -1186,27 +1186,6 @@ nav a.active::after {
     border-color: #303030;
     background: #141414;
 }
-
-
-/* ============================= */
-/* FORMS */
-/* ============================= */
-
-#login-form,
-#add-set-form,
-#add-activity-form,
-#add-feat-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-#login-form label,
-#add-set-form label,
-#add-activity-form label,
-#add-feat-form label {
-    display: flex;
-    flex-direction: column;
 /* ============================= */
 /* FORMS */
 /* ============================= */
@@ -1237,11 +1216,13 @@ nav a.active::after {
     text-transform: uppercase;
 }
 
+/* ============================= */
+/* INPUTS / TEXTAREA */
+/* ============================= */
+
 #login-form input,
 #add-set-form input,
-#add-set-form select,
-#add-activity-form textarea,
-#add-feat-form select {
+#add-activity-form textarea {
     width: 100%;
     height: 42px;
 
@@ -1260,6 +1241,8 @@ nav a.active::after {
 
     outline: none;
 
+    color-scheme: dark;
+
     transition:
         border-color 180ms ease,
         background 180ms ease,
@@ -1276,33 +1259,80 @@ nav a.active::after {
     line-height: 1.5;
 }
 
+/* ============================= */
+/* SELECTS */
+/* ============================= */
+
+#add-set-form select,
+#add-feat-form select {
+    width: 100%;
+    min-height: 42px;
+
+    background: #101010;
+
+    border: 1px solid #202020;
+    border-radius: 10px;
+
+    padding: 0 12px;
+
+    color: #eee;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 450;
+
+    outline: none;
+
+    color-scheme: dark;
+
+    cursor: pointer;
+
+    appearance: auto;
+    -webkit-appearance: auto;
+
+    transition:
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+}
+
+/* Make the native option list dark where the browser allows it */
+#add-set-form select option,
+#add-feat-form select option {
+    background: #101010;
+    color: #eee;
+}
+
+/* ============================= */
+/* FOCUS */
+/* ============================= */
+
 #login-form input:focus,
 #add-set-form input:focus,
 #add-set-form select:focus,
 #add-activity-form textarea:focus,
 #add-feat-form select:focus {
     background: #121212;
+
     border-color: #383838;
 
     box-shadow:
         0 0 0 3px rgba(255, 255, 255, 0.025);
 }
 
-#add-set-form select,
-#add-feat-form select {
-    appearance: auto;
-    -webkit-appearance: auto;
-
-    color-scheme: dark;
-
-    cursor: pointer;
-}
+/* ============================= */
+/* FORM ROW */
+/* ============================= */
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
 }
+
+/* ============================= */
+/* FORM ERROR */
+/* ============================= */
 
 .form-error {
     min-height: 16px;
@@ -1312,6 +1342,10 @@ nav a.active::after {
     font-size: 10px;
     line-height: 1.5;
 }
+
+/* ============================= */
+/* FORM SUBMIT */
+/* ============================= */
 
 .form-submit {
     width: 100%;
@@ -1348,46 +1382,8 @@ nav a.active::after {
     transform: none;
 }
 
-select {
-    width: 100%;
-    min-height: 44px;
 
-    background: #0e0e0e;
-    border: 1px solid #202020;
-    border-radius: 12px;
-
-    padding: 0 14px;
-
-    color: #f5f5f5;
-    font-family: inherit;
-    font-size: 13px;
-
-    outline: none;
-    cursor: pointer;
-
-    appearance: none;
-    -webkit-appearance: none;
-
-    transition:
-        border-color 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-select:hover {
-    border-color: #292929;
-}
-
-select:focus {
-    background: #101010;
-    border-color: #383838;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.025);
-}
-
-select option {
-    background: #101010;
-    color: #f5f5f5;
-}
+    
 /* ============================= */
 /* MOBILE */
 /* ============================= */
