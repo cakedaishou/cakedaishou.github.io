@@ -344,24 +344,12 @@ if (document.body.classList.contains("sets-page")) {
             function () {
 
                 /*
-                 * Only read the text before the
-                 * number inside the button.
+                 * Read the explicit filter value
+                 * from the data-filter attribute.
                  */
 
-                const textNode =
-                    Array.from(button.childNodes).find(
-                        function (node) {
-                            return node.nodeType === Node.TEXT_NODE;
-                        }
-                    );
-
-                const text =
-                    textNode
-                        ? textNode.textContent.trim().toLowerCase()
-                        : "";
-
-
-                currentFilter = text;
+                currentFilter =
+                    button.dataset.filter || "all";
 
 
                 filterButtons.forEach(
