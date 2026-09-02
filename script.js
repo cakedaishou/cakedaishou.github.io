@@ -28,14 +28,9 @@ const subtitles = [
     "fishnets>>thigh socks"
 ];
 
-window.statAnimationTimers = {};
-window.lastStatsKey = "";
-
-
 document.addEventListener("DOMContentLoaded", () => {
     startApp();
 });
-
 
 async function startApp() {
     setupTypewriter();
@@ -52,7 +47,6 @@ async function startApp() {
         );
 
         setupAuth();
-
         await updateAuthUI();
         await loadSets();
     } else {
@@ -150,7 +144,6 @@ function setupModals() {
     });
 }
 
-
 function openModal(id) {
     const modal = document.getElementById(id);
 
@@ -162,7 +155,6 @@ function openModal(id) {
     modal.classList.add("open");
     document.body.classList.add("modal-open");
 }
-
 
 function closeModal(id) {
     const modal = document.getElementById(id);
@@ -196,13 +188,13 @@ function setupAuth() {
     }
 
     supabaseClient.auth.onAuthStateChange(() => {
+        // Do not await Supabase calls inside this callback.
         setTimeout(() => {
             updateAuthUI();
             loadSets();
         }, 0);
     });
 }
-
 
 async function updateAuthUI() {
     if (!supabaseClient) {
@@ -240,7 +232,6 @@ async function updateAuthUI() {
         }
     }
 }
-
 
 async function handleLogin(event) {
     event.preventDefault();
@@ -287,7 +278,6 @@ async function handleLogin(event) {
     }
 
     document.getElementById("login-form")?.reset();
-
     closeModal("login-modal");
 
     if (submitButton) {
@@ -295,7 +285,6 @@ async function handleLogin(event) {
         submitButton.textContent = "sign in";
     }
 }
-
 
 async function handleLogout() {
     const { error } = await supabaseClient.auth.signOut();
@@ -355,7 +344,6 @@ function renderSets() {
     }
 
     const searchInput = document.querySelector(".search-wrapper input");
-
     const searchTerm = searchInput
         ? searchInput.value.trim().toLowerCase()
         : "";
@@ -394,9 +382,7 @@ function renderSets() {
             <div class="empty-state">
                 <div class="empty-icon">—</div>
                 <h3>${allSets.length ? "nothing found" : "no sets yet"}</h3>
-                <p>${allSets.length
-                    ? "try another search or filter..."
-                    : "the archive is empty for now..."}</p>
+                <p>${allSets.length ? "try another search or filter..." : "the archive is empty for now..."}</p>
             </div>
         `;
 
@@ -410,7 +396,6 @@ function renderSets() {
 
     updateSetCount(filtered.length);
 }
-
 
 function createSetCard(set) {
     const opponent = escapeHtml(set.opponent || "unknown");
@@ -497,7 +482,6 @@ function setupFilters() {
     });
 }
 
-
 function updateFilterCounts(sets) {
     const allButton = document.querySelector(
         '.filter[data-filter="all"] span'
@@ -559,7 +543,6 @@ function setupAddSetForm() {
 
     form.addEventListener("submit", handleAddSet);
 }
-
 
 async function handleAddSet(event) {
     event.preventDefault();
@@ -655,200 +638,45 @@ async function handleAddSet(event) {
 ========================= */
 
 function updateStats(sets) {
-    if (!document.body.classList.contains("home-page")) {
-        return;
-    }
-
     const setsElement = document.getElementById("stat-sets");
     const wlElement = document.getElementById("stat-wl");
     const winrateElement = document.getElementById("stat-winrate");
     const roundsElement = document.getElementById("stat-rounds");
 
-    const wins = sets.filter(
-        (set) => set.result === "win"
-    ).length;
+    if (!document.body.classList.contains("home-page")) {
+        return;
+    }
 
-    const losses = sets.filter(
-        (set) => set.result === "loss"
-    ).length;
+    const wins = sets.filter((set) => set.result === "win").length;
+    const losses = sets.filter((set) => set.result === "loss").length;
 
     const roundsWon = sets.reduce(
-        (total, set) =>
-            total + safeNumber(set.player_score),
+        (total, set) => total + Number(set.player_score || 0),
         0
     );
 
     const roundsLost = sets.reduce(
-        (total, set) =>
-            total + safeNumber(set.opponent_score),
+        (total, set) => total + Number(set.opponent_score || 0),
         0
     );
 
-    const winrate =
-        sets.length > 0
-            ? Math.round((wins / sets.length) * 1000) / 10
-            : null;
-
-    const statsKey = [
-        sets.length,
-        wins,
-        losses,
-        roundsWon,
-        roundsLost,
-        winrate
-    ].join("|");
-
-    if (statsKey === window.lastStatsKey) {
-        return;
-    }
-
-    window.lastStatsKey = statsKey;
-
-    /* -------------------------
-       SETS COUNT
-    ------------------------- */
-
     if (setsElement) {
-        animateSetCount(
-            setsElement,
-            sets.length
-        );
+        setsElement.textContent = sets.length;
     }
-
-    /* -------------------------
-       W / L TYPEWRITER
-    ------------------------- */
 
     if (wlElement) {
-        typeStatistic(
-            wlElement,
-            `${wins} - ${losses}`,
-            48
-        );
+        wlElement.textContent = `${wins} - ${losses}`;
     }
-
-    /* -------------------------
-       WINRATE
-    ------------------------- */
 
     if (winrateElement) {
         winrateElement.textContent =
-            winrate !== null
-                ? `${winrate}%`
+            sets.length > 0
+                ? `${Math.round((wins / sets.length) * 100)}%`
                 : "—";
     }
 
-    /* -------------------------
-       ROUNDS
-    ------------------------- */
-
     if (roundsElement) {
-        roundsElement.textContent =
-            `${roundsWon} - ${roundsLost}`;
-    }
-}
-
-
-/* =========================
-   STAT ANIMATIONS
-========================= */
-
-function animateSetCount(element, target) {
-    clearStatTimer("sets");
-
-    const current = Number.parseInt(
-        element.textContent,
-        10
-    );
-
-    const start =
-        Number.isFinite(current)
-            ? current
-            : 0;
-
-    if (target <= 0) {
-        element.textContent = "0";
-        return;
-    }
-
-    if (start === target) {
-        element.textContent = String(target);
-        return;
-    }
-
-    let value = start;
-
-    const direction =
-        target > start
-            ? 1
-            : -1;
-
-    const distance = Math.abs(target - start);
-
-    /*
-        More sets = faster ticking.
-
-        1 set  → ~158ms per step
-        10 sets → ~50ms per step
-        20+    → ~25ms per step
-    */
-    const delay = Math.max(
-        25,
-        170 - (target * 12)
-    );
-
-    function tick() {
-        value += direction;
-
-        element.textContent = String(value);
-
-        if (value === target) {
-            window.statAnimationTimers.sets = null;
-            return;
-        }
-
-        window.statAnimationTimers.sets =
-            setTimeout(tick, delay);
-    }
-
-    tick();
-}
-
-
-function typeStatistic(element, text, speed = 48) {
-    clearStatTimer(element.id);
-
-    if (element.textContent === text) {
-        return;
-    }
-
-    element.textContent = "";
-
-    let index = 0;
-
-    function typeNext() {
-        if (index >= text.length) {
-            window.statAnimationTimers[element.id] = null;
-            return;
-        }
-
-        element.textContent += text[index];
-        index++;
-
-        window.statAnimationTimers[element.id] =
-            setTimeout(typeNext, speed);
-    }
-
-    typeNext();
-}
-
-
-function clearStatTimer(key) {
-    const timer = window.statAnimationTimers[key];
-
-    if (timer) {
-        clearTimeout(timer);
-        window.statAnimationTimers[key] = null;
+        roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
     }
 }
 
@@ -858,9 +686,7 @@ function clearStatTimer(key) {
 ========================= */
 
 function updateSetCount(count) {
-    const element = document.querySelector(
-        ".set-count span"
-    );
+    const element = document.querySelector(".set-count span");
 
     if (!element) {
         return;
@@ -871,26 +697,19 @@ function updateSetCount(count) {
     }`;
 }
 
-
 function formatDate(value) {
-    const date = new Date(
-        `${value}T00:00:00`
-    );
+    const date = new Date(`${value}T00:00:00`);
 
     if (Number.isNaN(date.getTime())) {
         return value;
     }
 
-    return date.toLocaleDateString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
+    return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
 }
-
 
 function escapeHtml(value) {
     return String(value)
@@ -901,20 +720,8 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-
-function safeNumber(value) {
-    const number = Number(value);
-
-    return Number.isFinite(number)
-        ? number
-        : 0;
-}
-
-
 function setupDateInput() {
-    const input = document.getElementById(
-        "set-date"
-    );
+    const input = document.getElementById("set-date");
 
     if (!input || input.value) {
         return;
@@ -924,11 +731,26 @@ function setupDateInput() {
     const offset = now.getTimezoneOffset();
 
     const localDate = new Date(
-        now.getTime() -
-        offset * 60 * 1000
+        now.getTime() - offset * 60 * 1000
     )
         .toISOString()
         .split("T")[0];
 
     input.value = localDate;
-    
+}
+
+function showLoadingError(message) {
+    const list = document.getElementById("sets-list");
+
+    if (!list) {
+        return;
+    }
+
+    list.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">—</div>
+            <h3>${escapeHtml(message)}</h3>
+            <p>check the browser console for the error...</p>
+        </div>
+    `;
+}
