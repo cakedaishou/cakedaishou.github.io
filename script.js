@@ -636,7 +636,6 @@ async function handleAddSet(event) {
 /* =========================
    HOME STATS
 ========================= */
-
 function updateStats(sets) {
     const setsElement = document.getElementById("stat-sets");
     const wlElement = document.getElementById("stat-record");
@@ -646,16 +645,28 @@ function updateStats(sets) {
     const wins = sets.filter((set) => set.result === "win").length;
     const losses = sets.filter((set) => set.result === "loss").length;
 
-    const roundsWon = sets.reduce(
-        (total, set) => total + Number(set.player_score || 0),
-        0
-    );
+    /*
+        W / L = win-loss ratio
 
-    const roundsLost = sets.reduce(
-        (total, set) => total + Number(set.opponent_score || 0),
-        0
-    );
+        Examples:
+        1 win / 1 loss = 1.00
+        8 wins / 5 losses = 1.60
+        8 wins / 2 losses = 4.00
 
+        With 0 losses, we display the number of wins
+        as a ratio instead of Infinity.
+    */
+    let winLossRatio;
+
+    if (losses === 0) {
+        winLossRatio = wins > 0 ? wins.toFixed(2) : "0.00";
+    } else {
+        winLossRatio = (wins / losses).toFixed(2);
+    }
+
+    /*
+        Sets count animation
+    */
     if (setsElement) {
         const target = sets.length;
 
@@ -683,27 +694,16 @@ function updateStats(sets) {
         }
     }
 
+    /*
+        W / L = fixed decimal ratio
+    */
     if (wlElement) {
-        const text = `${wins} - ${losses}`;
-
-        wlElement.textContent = "";
-
-        let index = 0;
-
-        function typeRecord() {
-            if (index >= text.length) {
-                return;
-            }
-
-            wlElement.textContent += text[index];
-            index++;
-
-            setTimeout(typeRecord, 55);
-        }
-
-        typeRecord();
+        wlElement.textContent = winLossRatio;
     }
 
+    /*
+        Winrate
+    */
     if (winrateElement) {
         winrateElement.textContent =
             sets.length > 0
@@ -711,11 +711,16 @@ function updateStats(sets) {
                 : "—";
     }
 
+    /*
+        Rounds = sets won / sets lost
+    */
     if (roundsElement) {
-        roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
+        roundsElement.textContent = `${wins} - ${losses}`;
     }
 }
 
+
+            
 
 /* =========================
    HELPERS
