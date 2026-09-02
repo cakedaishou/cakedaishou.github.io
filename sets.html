@@ -90,9 +90,13 @@
         <section class="sets-list" id="sets-list">
 
             <div class="empty-state" id="sets-loading">
+
                 <div class="empty-icon">—</div>
+
                 <h3>loading sets</h3>
+
                 <p>pulling the archive...</p>
+
             </div>
 
         </section>
@@ -100,17 +104,33 @@
 
         <section class="owner-panel" id="owner-panel">
 
-            <button class="owner-button" id="login-button">
+            <button
+                class="owner-button"
+                id="login-button"
+                type="button"
+            >
                 login
             </button>
 
-            <div class="owner-tools" id="owner-tools">
 
-                <button class="owner-button" id="add-set-button">
+            <div
+                class="owner-tools"
+                id="owner-tools"
+            >
+
+                <button
+                    class="owner-button"
+                    id="add-set-button"
+                    type="button"
+                >
                     add set
                 </button>
 
-                <button class="owner-button subtle" id="logout-button">
+                <button
+                    class="owner-button subtle"
+                    id="logout-button"
+                    type="button"
+                >
                     logout
                 </button>
 
@@ -119,25 +139,46 @@
         </section>
 
 
-        <div class="modal-backdrop" id="login-modal">
+        <!-- LOGIN MODAL -->
+
+        <div
+            class="modal-backdrop"
+            id="login-modal"
+        >
 
             <div class="modal">
 
                 <div class="modal-header">
+
                     <div>
-                        <span class="eyebrow">owner</span>
-                        <h2>login</h2>
+
+                        <span class="eyebrow">
+                            owner
+                        </span>
+
+                        <h2>
+                            login
+                        </h2>
+
                     </div>
 
-                    <button class="modal-close" data-close-modal>
+
+                    <button
+                        class="modal-close"
+                        data-close-modal
+                        type="button"
+                    >
                         ×
                     </button>
+
                 </div>
+
 
                 <form id="login-form">
 
                     <label>
                         email
+
                         <input
                             id="login-email"
                             type="email"
@@ -146,8 +187,10 @@
                         >
                     </label>
 
+
                     <label>
                         password
+
                         <input
                             id="login-password"
                             type="password"
@@ -156,9 +199,17 @@
                         >
                     </label>
 
-                    <p class="form-error" id="login-error"></p>
 
-                    <button class="form-submit" type="submit">
+                    <p
+                        class="form-error"
+                        id="login-error"
+                    ></p>
+
+
+                    <button
+                        class="form-submit"
+                        type="submit"
+                    >
                         sign in
                     </button>
 
@@ -169,25 +220,46 @@
         </div>
 
 
-        <div class="modal-backdrop" id="add-set-modal">
+        <!-- ADD SET MODAL -->
+
+        <div
+            class="modal-backdrop"
+            id="add-set-modal"
+        >
 
             <div class="modal">
 
                 <div class="modal-header">
+
                     <div>
-                        <span class="eyebrow">archive</span>
-                        <h2>add set</h2>
+
+                        <span class="eyebrow">
+                            archive
+                        </span>
+
+                        <h2>
+                            add set
+                        </h2>
+
                     </div>
 
-                    <button class="modal-close" data-close-modal>
+
+                    <button
+                        class="modal-close"
+                        data-close-modal
+                        type="button"
+                    >
                         ×
                     </button>
+
                 </div>
+
 
                 <form id="add-set-form">
 
                     <label>
                         opponent
+
                         <input
                             id="set-opponent"
                             type="text"
@@ -201,14 +273,26 @@
 
                         <label>
                             result
-                            <select id="set-result" required>
-                                <option value="win">win</option>
-                                <option value="loss">loss</option>
+
+                            <select
+                                id="set-result"
+                                required
+                            >
+                                <option value="win">
+                                    win
+                                </option>
+
+                                <option value="loss">
+                                    loss
+                                </option>
                             </select>
+
                         </label>
+
 
                         <label>
                             format
+
                             <input
                                 id="set-format"
                                 type="text"
@@ -225,6 +309,7 @@
 
                         <label>
                             your score
+
                             <input
                                 id="set-player-score"
                                 type="number"
@@ -234,8 +319,10 @@
                             >
                         </label>
 
+
                         <label>
                             opponent score
+
                             <input
                                 id="set-opponent-score"
                                 type="number"
@@ -250,6 +337,7 @@
 
                     <label>
                         character
+
                         <input
                             id="set-character"
                             type="text"
@@ -261,6 +349,7 @@
 
                     <label>
                         date
+
                         <input
                             id="set-date"
                             type="date"
@@ -269,9 +358,16 @@
                     </label>
 
 
-                    <p class="form-error" id="add-set-error"></p>
+                    <p
+                        class="form-error"
+                        id="add-set-error"
+                    ></p>
 
-                    <button class="form-submit" type="submit">
+
+                    <button
+                        class="form-submit"
+                        type="submit"
+                    >
                         save set
                     </button>
 
@@ -288,4 +384,4 @@
     <script src="./script.js"></script>
 
 </body>
-                            </html>
+</html>
