@@ -38,6 +38,8 @@ async function startApp() {
     setupFilters();
     setupSearch();
     setupAddSetForm();
+    setupAddActivityForm();
+    setupAddFeatForm();
     setupDateInput();
 
     if (window.supabase) {
@@ -49,6 +51,8 @@ async function startApp() {
         setupAuth();
         await updateAuthUI();
         await loadSets();
+        await loadActivities();
+        await loadFeats();
     } else {
         console.error("Supabase library failed to load.");
         showLoadingError("supabase failed to load");
@@ -75,11 +79,14 @@ function setupTypewriter() {
 
     element.textContent = "";
     element.style.opacity = "1";
+    element.classList.add("typing");
 
     let index = 0;
 
     function typeNextCharacter() {
         if (index >= text.length) {
+            element.classList.remove("typing");
+            element.classList.add("finished");
             return;
         }
 
@@ -100,6 +107,8 @@ function setupTypewriter() {
 function setupModals() {
     const loginButton = document.getElementById("login-button");
     const addSetButton = document.getElementById("add-set-button");
+    const addActivityButton = document.getElementById("add-activity-button");
+    const addFeatButton = document.getElementById("add-feat-button");
 
     if (loginButton) {
         loginButton.addEventListener("click", () => {
@@ -110,6 +119,19 @@ function setupModals() {
     if (addSetButton) {
         addSetButton.addEventListener("click", () => {
             openModal("add-set-modal");
+        });
+    }
+
+    if (addActivityButton) {
+        addActivityButton.addEventListener("click", () => {
+            openModal("add-activity-modal");
+        });
+    }
+
+    if (addFeatButton) {
+        addFeatButton.addEventListener("click", async () => {
+            await populateFeatSelect();
+            openModal("add-feat-modal");
         });
     }
 
@@ -188,10 +210,11 @@ function setupAuth() {
     }
 
     supabaseClient.auth.onAuthStateChange(() => {
-        // Do not await Supabase calls inside this callback.
-        setTimeout(() => {
-            updateAuthUI();
-            loadSets();
+        setTimeout(async () => {
+            await updateAuthUI();
+            await loadSets();
+            await loadActivities();
+            await loadFeats();
         }, 0);
     });
 }
@@ -203,6 +226,7 @@ async function updateAuthUI() {
 
     const loginButton = document.getElementById("login-button");
     const ownerTools = document.getElementById("owner-tools");
+    const homeOwnerTools = document.querySelectorAll(".home-owner-tools");
 
     const {
         data: { session },
@@ -222,6 +246,10 @@ async function updateAuthUI() {
         if (ownerTools) {
             ownerTools.style.display = "flex";
         }
+
+        homeOwnerTools.forEach((element) => {
+            element.style.display = "flex";
+        });
     } else {
         if (loginButton) {
             loginButton.style.display = "inline-flex";
@@ -230,6 +258,10 @@ async function updateAuthUI() {
         if (ownerTools) {
             ownerTools.style.display = "none";
         }
+
+        homeOwnerTools.forEach((element) => {
+            element.style.display = "none";
+        });
     }
 }
 
@@ -296,6 +328,8 @@ async function handleLogout() {
 
     await updateAuthUI();
     await loadSets();
+    await loadActivities();
+    await loadFeats();
 }
 
 
@@ -304,8 +338,6 @@ async function handleLogout() {
 ========================= */
 
 async function loadSets() {
-    const list = document.getElementById("sets-list");
-
     if (!supabaseClient) {
         return;
     }
@@ -636,6 +668,7 @@ async function handleAddSet(event) {
 /* =========================
    HOME STATS
 ========================= */
+
 function updateStats(sets) {
     const setsElement = document.getElementById("stat-sets");
     const wlElement = document.getElementById("stat-record");
@@ -645,17 +678,6 @@ function updateStats(sets) {
     const wins = sets.filter((set) => set.result === "win").length;
     const losses = sets.filter((set) => set.result === "loss").length;
 
-    /*
-        W / L = win-loss ratio
-
-        Examples:
-        1 win / 1 loss = 1.00
-        8 wins / 5 losses = 1.60
-        8 wins / 2 losses = 4.00
-
-        With 0 losses, we display the number of wins
-        as a ratio instead of Infinity.
-    */
     let winLossRatio;
 
     if (losses === 0) {
@@ -664,9 +686,6 @@ function updateStats(sets) {
         winLossRatio = (wins / losses).toFixed(2);
     }
 
-    /*
-        Sets count animation
-    */
     if (setsElement) {
         const target = sets.length;
 
@@ -694,16 +713,10 @@ function updateStats(sets) {
         }
     }
 
-    /*
-        W / L = fixed decimal ratio
-    */
     if (wlElement) {
         wlElement.textContent = winLossRatio;
     }
 
-    /*
-        Winrate
-    */
     if (winrateElement) {
         winrateElement.textContent =
             sets.length > 0
@@ -711,87 +724,140 @@ function updateStats(sets) {
                 : "—";
     }
 
-    /*
-        Rounds = sets won / sets lost
-    */
     if (roundsElement) {
         roundsElement.textContent = `${wins} - ${losses}`;
     }
 }
 
 
-            
-
 /* =========================
-   HELPERS
+   RECENT ACTIVITIES
 ========================= */
 
-function updateSetCount(count) {
-    const element = document.querySelector(".set-count span");
+function setupAddActivityForm() {
+    const form = document.getElementById("add-activity-form");
 
-    if (!element) {
+    if (!form) {
         return;
     }
 
-    element.textContent = `${count} ${
-        count === 1 ? "set" : "sets"
-    }`;
+    form.addEventListener("submit", handleAddActivity);
 }
 
-function formatDate(value) {
-    const date = new Date(`${value}T00:00:00`);
+async function handleAddActivity(event) {
+    event.preventDefault();
 
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-    });
-}
-
-function escapeHtml(value) {
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function setupDateInput() {
-    const input = document.getElementById("set-date");
-
-    if (!input || input.value) {
+    if (!supabaseClient) {
         return;
     }
 
-    const now = new Date();
-    const offset = now.getTimezoneOffset();
+    const input = document.getElementById("activity-content");
+    const errorElement = document.getElementById("activity-error");
+    const submitButton = event.submitter;
 
-    const localDate = new Date(
-        now.getTime() - offset * 60 * 1000
-    )
-        .toISOString()
-        .split("T")[0];
+    const content = input?.value.trim();
 
-    input.value = localDate;
+    if (!content) {
+        return;
+    }
+
+    if (errorElement) {
+        errorElement.textContent = "";
+    }
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "posting...";
+    }
+
+    const { error } = await supabaseClient
+        .from("activities")
+        .insert({
+            content
+        });
+
+    if (error) {
+        console.error("Could not add activity:", error);
+
+        if (errorElement) {
+            errorElement.textContent = error.message;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = "post activity";
+        }
+
+        return;
+    }
+
+    document.getElementById("add-activity-form")?.reset();
+
+    closeModal("add-activity-modal");
+
+    if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "post activity";
+    }
+
+    await loadActivities();
 }
 
-function showLoadingError(message) {
-    const list = document.getElementById("sets-list");
+async function loadActivities() {
+    const list = document.getElementById("recent-activities");
+
+    if (!list || !supabaseClient) {
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("activities")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Could not load activities:", error);
+        return;
+    }
+
+    window.allActivities = data || [];
+
+    renderActivities();
+}
+
+function renderActivities() {
+    const list = document.getElementById("recent-activities");
 
     if (!list) {
         return;
     }
 
-    list.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-icon">—</div>
-            <h3>${escapeHtml(message)}</h3>
-            <p>check the browser console for the error...</p>
-        </div>
-    `;
+    const activities = window.allActivities || [];
+
+    if (activities.length === 0) {
+        list.innerHTML = `
+            <div class="empty">
+                nothing here yet...
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = activities
+        .map((activity) => createActivity(activity))
+        .join("");
 }
+
+function createActivity(activity) {
+    const content = escapeHtml(activity.content || "");
+    const date = activity.created_at
+        ? formatActivityDate(activity.created_at)
+        : "";
+
+    return `
+        <article class="activity">
+
+            <div class="activity-content">
+                ${content}
+            
