@@ -178,7 +178,8 @@ function setupModals() {
 }
 
 function openModal(id) {
-    const modal = document.getElementById(id);
+    const modal =
+        document.getElementById(id);
 
     if (!modal) {
         console.error(`Modal not found: ${id}`);
@@ -190,7 +191,8 @@ function openModal(id) {
 }
 
 function closeModal(id) {
-    const modal = document.getElementById(id);
+    const modal =
+        document.getElementById(id);
 
     if (!modal) {
         return;
@@ -420,14 +422,6 @@ async function loadSets() {
 
     window.allSets = data || [];
 
-    /*
-        IMPORTANT:
-
-        The homepage does not have a #sets-list,
-        so stats must be updated regardless of
-        which page we're currently on.
-    */
-
     updateStats(window.allSets);
 
     if (list) {
@@ -498,6 +492,7 @@ function renderSets() {
         list.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">—</div>
+
                 <h3>
                     ${
                         allSets.length
@@ -505,6 +500,7 @@ function renderSets() {
                             : "no sets yet"
                     }
                 </h3>
+
                 <p>
                     ${
                         allSets.length
@@ -580,6 +576,7 @@ function createSetCard(set) {
 
                 <div class="set-opponent">
                     <span>vs</span>
+
                     <strong>
                         ${opponent}
                     </strong>
@@ -649,7 +646,6 @@ function setupFilters() {
                     renderSets();
                 }
             );
-
         });
 }
 
@@ -883,12 +879,6 @@ function updateStats(sets) {
             "stat-rounds"
         );
 
-    /*
-        No home-page class required.
-        We simply update whichever
-        stat elements actually exist.
-    */
-
     const wins =
         sets.filter(
             (set) =>
@@ -904,11 +894,8 @@ function updateStats(sets) {
     const roundsWon =
         sets.reduce(
             (total, set) => {
-
                 const score =
-                    Number(
-                        set.player_score
-                    );
+                    Number(set.player_score);
 
                 return total + (
                     Number.isFinite(score)
@@ -922,11 +909,8 @@ function updateStats(sets) {
     const roundsLost =
         sets.reduce(
             (total, set) => {
-
                 const score =
-                    Number(
-                        set.opponent_score
-                    );
+                    Number(set.opponent_score);
 
                 return total + (
                     Number.isFinite(score)
@@ -943,12 +927,7 @@ function updateStats(sets) {
     ========================= */
 
     if (setsElement) {
-
-        if (
-            lastStats.sets !==
-            sets.length
-        ) {
-
+        if (lastStats.sets !== sets.length) {
             animateSetNumber(
                 setsElement,
                 sets.length
@@ -965,19 +944,20 @@ function updateStats(sets) {
     ========================= */
 
     if (wlElement) {
-
         if (
             lastStats.wins !== wins ||
             lastStats.losses !== losses
         ) {
-
             typeStatistic(
                 wlElement,
                 `${wins} - ${losses}`
             );
 
-            lastStats.wins = wins;
-            lastStats.losses = losses;
+            lastStats.wins =
+                wins;
+
+            lastStats.losses =
+                losses;
         }
     }
 
@@ -987,8 +967,20 @@ function updateStats(sets) {
     ========================= */
 
     if (winrateElement) {
-
         if (sets.length === 0) {
+            winrateElement.textContent = "—";
+            lastStats.winrate = null;
+        } else {
+            const winrate =
+                (wins / sets.length) * 100;
 
-            winrateElement.textContent =
-                
+            const rounded =
+                Math.round(winrate * 10) / 10;
+
+            const value =
+                `${rounded}%`;
+
+            if (
+                lastStats.winrate !== value
+            ) {
+                winrateElement.tex
