@@ -23,65 +23,131 @@ const subtitles = [
     "fishnets>>thigh socks"
 ];
 
+
 const subtitleElement = document.getElementById("random-subtitle");
-const titleElement = document.querySelector(".brand h1");
+const titleElement = document.querySelector(".brand h1, .sets-title h1");
+
 
 function getRandomSubtitle() {
-    return subtitles[Math.floor(Math.random() * subtitles.length)];
+    return subtitles[
+        Math.floor(Math.random() * subtitles.length)
+    ];
 }
 
+
 function typeSubtitle(text) {
+
     if (!subtitleElement) return;
 
     subtitleElement.textContent = "";
+
     subtitleElement.classList.remove("finished");
     subtitleElement.classList.add("typing");
 
     let index = 0;
 
-    const typingSpeed = 42;
 
     function typeNextCharacter() {
+
         if (index < text.length) {
-            subtitleElement.textContent += text[index];
+
+            const character = text[index];
+
+            subtitleElement.textContent += character;
+
             index++;
 
-            setTimeout(typeNextCharacter, typingSpeed);
+
+            let typingSpeed = 42;
+
+
+            if (
+                character === "." ||
+                character === "!" ||
+                character === "?"
+            ) {
+                typingSpeed = 180;
+            }
+
+
+            setTimeout(
+                typeNextCharacter,
+                typingSpeed
+            );
+
         } else {
+
             subtitleElement.classList.remove("typing");
             subtitleElement.classList.add("finished");
+
         }
     }
+
 
     typeNextCharacter();
 }
 
+
 function startSubtitleAnimation() {
+
     if (!subtitleElement) return;
 
-    const randomSubtitle = getRandomSubtitle();
+
+    /*
+     * Sets page
+     */
+
+    if (
+        document.body.classList.contains("sets-page")
+    ) {
+
+        subtitleElement.style.opacity = "1";
+
+        typeSubtitle(
+            "every fight and every score"
+        );
+
+        return;
+    }
+
+
+    /*
+     * Home page
+     */
 
     subtitleElement.style.opacity = "1";
 
-    typeSubtitle(randomSubtitle);
+    typeSubtitle(
+        getRandomSubtitle()
+    );
 }
 
 
 /*
- * Wait until "Cake's Feats" finishes fading in.
- * The randomized subtitle starts immediately afterward.
+ * Wait until the title finishes fading in.
+ * Then begin typing the subtitle.
  */
 
 if (titleElement && subtitleElement) {
+
     titleElement.addEventListener(
         "animationend",
-        (event) => {
-            if (event.animationName === "titleFadeIn") {
+        function (event) {
+
+            if (
+                event.animationName === "titleFadeIn"
+            ) {
+
                 startSubtitleAnimation();
+
             }
+
         },
         { once: true }
     );
+
 } else if (subtitleElement) {
+
     startSubtitleAnimation();
+
 }
