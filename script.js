@@ -3,6 +3,11 @@ const SUPABASE_KEY = "sb_publishable_unLqx7_o_zlF0bTWtfOgZg_qqJ55uNb";
 
 let supabaseClient = null;
 
+window.allSets = [];
+window.allActivities = [];
+window.featuredSets = [];
+window.isOwnerLoggedIn = false;
+
 const subtitles = [
     "la peace man",
     "we ball",
@@ -32,6 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
     startApp();
 });
 
+
+/* =========================
+   STARTUP
+========================= */
+
 async function startApp() {
     setupTypewriter();
     setupModals();
@@ -41,22 +51,25 @@ async function startApp() {
     setupAddActivityForm();
     setupAddFeatForm();
     setupDateInput();
+    setupDynamicActions();
 
-    if (window.supabase) {
-        supabaseClient = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
-
-        setupAuth();
-        await updateAuthUI();
-        await loadSets();
-        await loadActivities();
-        await loadFeats();
-    } else {
+    if (!window.supabase) {
         console.error("Supabase library failed to load.");
         showLoadingError("supabase failed to load");
+        return;
     }
+
+    supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+    setupAuth();
+
+    await updateAuthUI();
+    await loadSets();
+    await loadActivities();
+    await loadFeats();
 }
 
 
@@ -105,16 +118,19 @@ function setupTypewriter() {
 ========================= */
 
 function setupModals() {
-    const loginButton = document.getElementById("login-button");
+    const loginButtons = document.querySelectorAll(
+        "#login-button, #home-login-button"
+    );
+
     const addSetButton = document.getElementById("add-set-button");
     const addActivityButton = document.getElementById("add-activity-button");
     const addFeatButton = document.getElementById("add-feat-button");
 
-    if (loginButton) {
-        loginButton.addEventListener("click", () => {
+    loginButtons.forEach((button) => {
+        button.addEventListener("click", () => {
             openModal("login-modal");
         });
-    }
+    });
 
     if (addSetButton) {
         addSetButton.addEventListener("click", () => {
@@ -131,6 +147,7 @@ function setupModals() {
     if (addFeatButton) {
         addFeatButton.addEventListener("click", async () => {
             await populateFeatSelect();
+            renderFeaturedManageList();
             openModal("add-feat-modal");
         });
     }
@@ -199,15 +216,18 @@ function closeModal(id) {
 
 function setupAuth() {
     const loginForm = document.getElementById("login-form");
-    const logoutButton = document.getElementById("logout-button");
+
+    const logoutButtons = document.querySelectorAll(
+        "#logout-button, #home-logout-button"
+    );
 
     if (loginForm) {
         loginForm.addEventListener("submit", handleLogin);
     }
 
-    if (logoutButton) {
-        logoutButton.addEventListener("click", handleLogout);
-    }
+    logoutButtons.forEach((button) => {
+        button.addEventListener("click", handleLogout);
+    });
 
     supabaseClient.auth.onAuthStateChange(() => {
         setTimeout(async () => {
@@ -224,9 +244,13 @@ async function updateAuthUI() {
         return;
     }
 
-    const loginButton = document.getElementById("login-button");
-    const ownerTools = document.getElementById("owner-tools");
-    const homeOwnerTools = document.querySelectorAll(".home-owner-tools");
+    const loginButtons = document.querySelectorAll(
+        "#login-button, #home-login-button"
+    );
+
+    const ownerTools = document.querySelectorAll(
+        "#owner-tools, .home-owner-tools"
+    );
 
     const {
         data: { session },
@@ -238,35 +262,36 @@ async function updateAuthUI() {
         return;
     }
 
+    window.isOwnerLoggedIn = Boolean(session);
+
     if (session) {
-        if (loginButton) {
-            loginButton.style.display = "none";
-        }
+        loginButtons.forEach((button) => {
+            button.style.display = "none";
+        });
 
-        if (ownerTools) {
-            ownerTools.style.display = "flex";
-        }
-
-        homeOwnerTools.forEach((element) => {
+        ownerTools.forEach((element) => {
             element.style.display = "flex";
         });
     } else {
-        if (loginButton) {
-            loginButton.style.display = "inline-flex";
-        }
+        loginButtons.forEach((button) => {
+            button.style.display = "inline-flex";
+        });
 
-        if (ownerTools) {
-            ownerTools.style.display = "none";
-        }
-
-        homeOwnerTools.forEach((element) => {
+        ownerTools.forEach((element) => {
             element.style.display = "none";
         });
     }
+
+    renderActivities();
+    renderFeaturedManageList();
 }
 
 async function handleLogin(event) {
     event.preventDefault();
+
+    if (!supabaseClient) {
+        return;
+    }
 
     const emailInput = document.getElementById("login-email");
     const passwordInput = document.getElementById("login-password");
@@ -310,6 +335,7 @@ async function handleLogin(event) {
     }
 
     document.getElementById("login-form")?.reset();
+
     closeModal("login-modal");
 
     if (submitButton) {
@@ -319,6 +345,10 @@ async function handleLogin(event) {
 }
 
 async function handleLogout() {
+    if (!supabaseClient) {
+        return;
+    }
+
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
@@ -350,7 +380,6 @@ async function loadSets() {
 
     if (error) {
         console.error("Could not load sets:", error);
-
         showLoadingError("couldn't load the archive");
         return;
     }
@@ -361,6 +390,7 @@ async function loadSets() {
     updateFilterCounts(window.allSets);
 
     renderSets();
+    populateFeatSelect();
 }
 
 
@@ -376,6 +406,7 @@ function renderSets() {
     }
 
     const searchInput = document.querySelector(".search-wrapper input");
+
     const searchTerm = searchInput
         ? searchInput.value.trim().toLowerCase()
         : "";
@@ -817,6 +848,10 @@ async function loadActivities() {
 
     if (error) {
         console.error("Could not load activities:", error);
+
+        window.allActivities = [];
+        renderActivities();
+
         return;
     }
 
@@ -839,25 +874,4 @@ function renderActivities() {
             <div class="empty">
                 nothing here yet...
             </div>
-        `;
-
-        return;
-    }
-
-    list.innerHTML = activities
-        .map((activity) => createActivity(activity))
-        .join("");
-}
-
-function createActivity(activity) {
-    const content = escapeHtml(activity.content || "");
-    const date = activity.created_at
-        ? formatActivityDate(activity.created_at)
-        : "";
-
-    return `
-        <article class="activity">
-
-            <div class="activity-content">
-                ${content}
-            
+ 
