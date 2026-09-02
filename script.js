@@ -306,7 +306,7 @@ async function handleLogout() {
 async function loadSets() {
     const list = document.getElementById("sets-list");
 
-    if (!list || !supabaseClient) {
+    if (!supabaseClient) {
         return;
     }
 
