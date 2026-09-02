@@ -23,11 +23,65 @@ const subtitles = [
     "fishnets>>thigh socks"
 ];
 
-const randomSubtitle =
-    subtitles[Math.floor(Math.random() * subtitles.length)];
-
 const subtitleElement = document.getElementById("random-subtitle");
+const titleElement = document.querySelector(".brand h1");
 
-if (subtitleElement) {
-    subtitleElement.textContent = randomSubtitle;
+function getRandomSubtitle() {
+    return subtitles[Math.floor(Math.random() * subtitles.length)];
+}
+
+function typeSubtitle(text) {
+    if (!subtitleElement) return;
+
+    subtitleElement.textContent = "";
+    subtitleElement.classList.remove("finished");
+    subtitleElement.classList.add("typing");
+
+    let index = 0;
+
+    const typingSpeed = 42;
+
+    function typeNextCharacter() {
+        if (index < text.length) {
+            subtitleElement.textContent += text[index];
+            index++;
+
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            subtitleElement.classList.remove("typing");
+            subtitleElement.classList.add("finished");
+        }
+    }
+
+    typeNextCharacter();
+}
+
+function startSubtitleAnimation() {
+    if (!subtitleElement) return;
+
+    const randomSubtitle = getRandomSubtitle();
+
+    subtitleElement.style.opacity = "1";
+
+    typeSubtitle(randomSubtitle);
+}
+
+
+/*
+ * Wait until "Cake's Feats" finishes fading in.
+ * The randomized subtitle starts immediately afterward.
+ */
+
+if (titleElement && subtitleElement) {
+    titleElement.addEventListener(
+        "animationend",
+        (event) => {
+            if (event.animationName === "titleFadeIn") {
+                startSubtitleAnimation();
+            }
+        },
+        { once: true }
+    );
+} else if (subtitleElement) {
+    startSubtitleAnimation();
 }
