@@ -715,7 +715,6 @@ function updateStats(sets) {
         roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
     }
 }
-}
 
 
 /* =========================
