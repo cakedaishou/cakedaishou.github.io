@@ -54,8 +54,9 @@ const titleElement =
     );
 
 
-let subtitleStarted = false;
-
+/* ============================= */
+/* TYPEWRITER */
+/* ============================= */
 
 function getRandomSubtitle() {
 
@@ -72,8 +73,6 @@ function typeSubtitle(text) {
 
     if (!subtitleElement) return;
 
-    subtitleStarted = true;
-
     subtitleElement.textContent = "";
 
     subtitleElement.classList.remove(
@@ -84,42 +83,14 @@ function typeSubtitle(text) {
         "typing"
     );
 
+    subtitleElement.style.opacity = "1";
+
     let index = 0;
 
 
     function typeNextCharacter() {
 
-        if (index < text.length) {
-
-            const character =
-                text[index];
-
-            subtitleElement.textContent +=
-                character;
-
-            index++;
-
-
-            let typingSpeed = 42;
-
-
-            if (
-                character === "." ||
-                character === "!" ||
-                character === "?"
-            ) {
-
-                typingSpeed = 180;
-
-            }
-
-
-            setTimeout(
-                typeNextCharacter,
-                typingSpeed
-            );
-
-        } else {
+        if (index >= text.length) {
 
             subtitleElement.classList.remove(
                 "typing"
@@ -129,7 +100,39 @@ function typeSubtitle(text) {
                 "finished"
             );
 
+            return;
         }
+
+
+        const character =
+            text[index];
+
+
+        subtitleElement.textContent +=
+            character;
+
+
+        index++;
+
+
+        let speed = 58;
+
+
+        if (
+            character === "." ||
+            character === "!" ||
+            character === "?"
+        ) {
+
+            speed = 220;
+
+        }
+
+
+        setTimeout(
+            typeNextCharacter,
+            speed
+        );
 
     }
 
@@ -139,73 +142,54 @@ function typeSubtitle(text) {
 }
 
 
-/*
- * Start the subtitle after the title.
- *
- * The timeout is a fallback for browsers
- * that restore the page from cache and skip
- * the animationend event.
- */
-
 function startSubtitleAnimation() {
 
     if (!subtitleElement) return;
 
-    if (subtitleStarted) return;
 
+    subtitleElement.style.opacity = "0";
 
-    subtitleElement.style.opacity = "1";
+    subtitleElement.textContent = "";
 
-
-    if (
-        document.body.classList.contains(
-            "sets-page"
-        )
-    ) {
-
-        typeSubtitle(
-            "every fight and every score"
-        );
-
-        return;
-
-    }
-
-
-    typeSubtitle(
-        getRandomSubtitle()
-    );
-
-}
-
-
-if (titleElement && subtitleElement) {
-
-    titleElement.addEventListener(
-        "animationend",
-        function (event) {
-
-            if (
-                event.animationName ===
-                "titleFadeIn"
-            ) {
-
-                startSubtitleAnimation();
-
-            }
-
-        },
-        { once: true }
+    subtitleElement.classList.remove(
+        "typing",
+        "finished"
     );
 
 
     setTimeout(
         function () {
 
-            startSubtitleAnimation();
+            const text =
+                document.body.classList.contains(
+                    "sets-page"
+                )
+                    ? "every fight and every score"
+                    : getRandomSubtitle();
+
+
+            typeSubtitle(text);
 
         },
-        950
+        150
+    );
+
+}
+
+
+/*
+ * Start predictably instead of depending
+ * on animationend firing.
+ */
+
+if (
+    titleElement &&
+    subtitleElement
+) {
+
+    setTimeout(
+        startSubtitleAnimation,
+        850
     );
 
 } else if (subtitleElement) {
@@ -242,7 +226,11 @@ function formatDate(dateString) {
         );
 
 
-    if (Number.isNaN(date.getTime())) {
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
 
         return dateString;
 
@@ -263,22 +251,23 @@ function formatDate(dateString) {
 
 function getToday() {
 
-    const now = new Date();
+    const date =
+        new Date();
 
 
     const year =
-        now.getFullYear();
+        date.getFullYear();
 
 
     const month =
         String(
-            now.getMonth() + 1
+            date.getMonth() + 1
         ).padStart(2, "0");
 
 
     const day =
         String(
-            now.getDate()
+            date.getDate()
         ).padStart(2, "0");
 
 
@@ -314,25 +303,9 @@ async function fetchSets() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Failed to load sets:",
-            error
-        );
-
-
-        return {
-            data: [],
-            error
-        };
-
-    }
-
-
     return {
         data: data || [],
-        error: null
+        error: error || null
     };
 
 }
@@ -360,7 +333,15 @@ async function loadHomePage() {
         await fetchSets();
 
 
-    if (error) return;
+    if (error) {
+
+        console.error(
+            "Failed to load homepage:",
+            error
+        );
+
+        return;
+    }
 
 
     const totalSets =
@@ -382,7 +363,6 @@ async function loadHomePage() {
 
 
     let playerRounds = 0;
-
     let opponentRounds = 0;
 
 
@@ -408,29 +388,29 @@ async function loadHomePage() {
         totalSets;
 
 
-    const recordElement =
+    const record =
         document.getElementById(
             "stat-record"
         );
 
 
-    if (recordElement) {
+    if (record) {
 
-        recordElement.textContent =
+        record.textContent =
             `${wins} - ${losses}`;
 
     }
 
 
-    const winrateElement =
+    const winrate =
         document.getElementById(
             "stat-winrate"
         );
 
 
-    if (winrateElement) {
+    if (winrate) {
 
-        winrateElement.textContent =
+        winrate.textContent =
             totalSets === 0
                 ? "—"
                 : `${(
@@ -442,75 +422,74 @@ async function loadHomePage() {
     }
 
 
-    const roundsElement =
+    const rounds =
         document.getElementById(
             "stat-rounds"
         );
 
 
-    if (roundsElement) {
+    if (rounds) {
 
-        roundsElement.textContent =
+        rounds.textContent =
             `${playerRounds} - ${opponentRounds}`;
 
     }
 
 
-    const recentElement =
+    const recent =
         document.getElementById(
             "recent-activities"
         );
 
 
     if (
-        recentElement &&
+        recent &&
         sets.length > 0
     ) {
 
-        const recent =
-            sets.slice(0, 3);
+        recent.innerHTML =
+            sets
+                .slice(0, 3)
+                .map(
+                    function (set) {
 
+                        return `
+                            <div class="recent-item">
 
-        recentElement.innerHTML =
-            recent.map(
-                function (set) {
+                                <span>
+                                    ${escapeHTML(
+                                        set.result
+                                    )}
+                                </span>
 
-                    return `
-                        <div class="recent-item">
+                                <strong>
+                                    ${escapeHTML(
+                                        set.opponent
+                                    )}
+                                </strong>
 
-                            <span>
-                                ${escapeHTML(
-                                    set.result
-                                )}
-                            </span>
+                                <b>
+                                    ${Number(
+                                        set.player_score || 0
+                                    )}
+                                    —
+                                    ${Number(
+                                        set.opponent_score || 0
+                                    )}
+                                </b>
 
-                            <strong>
-                                ${escapeHTML(
-                                    set.opponent
-                                )}
-                            </strong>
+                                <small>
+                                    ${formatDate(
+                                        set.played_at
+                                    )}
+                                </small>
 
-                            <b>
-                                ${Number(
-                                    set.player_score || 0
-                                )}
-                                —
-                                ${Number(
-                                    set.opponent_score || 0
-                                )}
-                            </b>
+                            </div>
+                        `;
 
-                            <small>
-                                ${formatDate(
-                                    set.played_at
-                                )}
-                            </small>
-
-                        </div>
-                    `;
-
-                }
-            ).join("");
+                    }
+                )
+                .join("");
 
     }
 
@@ -575,13 +554,79 @@ if (
         );
 
 
+    const loginButton =
+        document.getElementById(
+            "login-button"
+        );
+
+
+    const ownerTools =
+        document.getElementById(
+            "owner-tools"
+        );
+
+
+    const addSetButton =
+        document.getElementById(
+            "add-set-button"
+        );
+
+
+    const logoutButton =
+        document.getElementById(
+            "logout-button"
+        );
+
+
+    const loginModal =
+        document.getElementById(
+            "login-modal"
+        );
+
+
+    const addSetModal =
+        document.getElementById(
+            "add-set-modal"
+        );
+
+
+    const loginForm =
+        document.getElementById(
+            "login-form"
+        );
+
+
+    const addSetForm =
+        document.getElementById(
+            "add-set-form"
+        );
+
+
+    const loginError =
+        document.getElementById(
+            "login-error"
+        );
+
+
+    const addSetError =
+        document.getElementById(
+            "add-set-error"
+        );
+
+
+    const setDate =
+        document.getElementById(
+            "set-date"
+        );
+
+
     let allSets = [];
 
     let currentFilter = "all";
 
 
     /* ============================= */
-    /* EMPTY STATE */
+    /* EMPTY RESULT */
     /* ============================= */
 
     const noResults =
@@ -615,6 +660,216 @@ if (
 
         setsList.appendChild(
             noResults
+        );
+
+    }
+
+
+    /* ============================= */
+    /* MODALS */
+    /* ============================= */
+
+    function openModal(modal) {
+
+        if (!modal) return;
+
+        modal.classList.add(
+            "open"
+        );
+
+        document.body.classList.add(
+            "modal-open"
+        );
+
+    }
+
+
+    function closeModal(modal) {
+
+        if (!modal) return;
+
+        modal.classList.remove(
+            "open"
+        );
+
+
+        if (
+            !document.querySelector(
+                ".modal-backdrop.open"
+            )
+        ) {
+
+            document.body.classList.remove(
+                "modal-open"
+            );
+
+        }
+
+    }
+
+
+    document
+        .querySelectorAll(
+            "[data-close-modal]"
+        )
+        .forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        closeModal(
+                            button.closest(
+                                ".modal-backdrop"
+                            )
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".modal-backdrop"
+        )
+        .forEach(
+            function (backdrop) {
+
+                backdrop.addEventListener(
+                    "click",
+                    function (event) {
+
+                        if (
+                            event.target ===
+                            backdrop
+                        ) {
+
+                            closeModal(
+                                backdrop
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                document
+                    .querySelectorAll(
+                        ".modal-backdrop.open"
+                    )
+                    .forEach(
+                        function (modal) {
+
+                            closeModal(
+                                modal
+                            );
+
+                        }
+                    );
+
+            }
+
+        }
+    );
+
+
+    /* ============================= */
+    /* AUTH UI */
+    /* ============================= */
+
+    function updateAuthUI(session) {
+
+        const loggedIn =
+            Boolean(session);
+
+
+        if (loginButton) {
+
+            loginButton.style.display =
+                loggedIn
+                    ? "none"
+                    : "inline-flex";
+
+        }
+
+
+        if (ownerTools) {
+
+            ownerTools.style.display =
+                loggedIn
+                    ? "flex"
+                    : "none";
+
+        }
+
+    }
+
+
+    /* ============================= */
+    /* AUTH STATE */
+    /* ============================= */
+
+    supabaseClient.auth.onAuthStateChange(
+        function (_event, session) {
+
+            setTimeout(
+                function () {
+
+                    updateAuthUI(
+                        session
+                    );
+
+                },
+                0
+            );
+
+        }
+    );
+
+
+    async function loadAuthState() {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+
+        if (error) {
+
+            console.error(
+                "Auth error:",
+                error
+            );
+
+            updateAuthUI(
+                null
+            );
+
+            return;
+
+        }
+
+
+        updateAuthUI(
+            data.session
         );
 
     }
@@ -743,11 +998,9 @@ if (
 
 
                         <div class="set-result ${result}">
-
                             ${escapeHTML(
                                 set.result
                             )}
-
                         </div>
 
                     </div>
@@ -840,274 +1093,4 @@ if (
             allSets.filter(
                 set =>
                     set.result === "loss"
-            ).length;
-
-
-        if (allFilter) {
-
-            const count =
-                allFilter.querySelector(
-                    "span"
-                );
-
-
-            if (count) {
-
-                count.textContent =
-                    allSets.length;
-
-            }
-
-        }
-
-
-        if (winsFilter) {
-
-            const count =
-                winsFilter.querySelector(
-                    "span"
-                );
-
-
-            if (count) {
-
-                count.textContent =
-                    wins;
-
-            }
-
-        }
-
-
-        if (lossesFilter) {
-
-            const count =
-                lossesFilter.querySelector(
-                    "span"
-                );
-
-
-            if (count) {
-
-                count.textContent =
-                    losses;
-
-            }
-
-        }
-
-
-        if (setCount) {
-
-            setCount.textContent =
-                filteredSets.length === 1
-                    ? "1 set"
-                    : `${filteredSets.length} sets`;
-
-        }
-
-
-        noResults.style.display =
-            filteredSets.length === 0
-                ? "flex"
-                : "none";
-
-    }
-
-
-    /* ============================= */
-    /* LOAD SETS */
-    /* ============================= */
-
-    async function loadSetsPage() {
-
-        const {
-            data,
-            error
-        } =
-            await fetchSets();
-
-
-        if (loadingState) {
-
-            loadingState.remove();
-
-        }
-
-
-        if (error) {
-
-            console.error(
-                "Set loading error:",
-                error
-            );
-
-
-            noResults.innerHTML = `
-                <div class="empty-icon">!</div>
-
-                <h3>
-                    couldn't load sets
-                </h3>
-
-                <p>
-                    ${escapeHTML(
-                        error.message ||
-                        "something went wrong."
-                    )}
-                </p>
-            `;
-
-
-            noResults.style.display =
-                "flex";
-
-
-            return;
-
-        }
-
-
-        allSets =
-            data || [];
-
-
-        renderSets();
-
-    }
-
-
-    /* ============================= */
-    /* FILTER BUTTONS */
-    /* ============================= */
-
-    filterButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    currentFilter =
-                        button.dataset.filter ||
-                        "all";
-
-
-                    filterButtons.forEach(
-                        function (filter) {
-
-                            filter.classList.remove(
-                                "active"
-                            );
-
-                        }
-                    );
-
-
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    renderSets();
-
-                }
-            );
-
-        }
-    );
-
-
-    /* ============================= */
-    /* SEARCH */
-    /* ============================= */
-
-    if (searchInput) {
-
-        searchInput.addEventListener(
-            "input",
-            function () {
-
-                renderSets();
-
-            }
-        );
-
-    }
-
-
-    /* ============================= */
-    /* AUTH ELEMENTS */
-    /* ============================= */
-
-    const loginButton =
-        document.getElementById(
-            "login-button"
-        );
-
-
-    const ownerTools =
-        document.getElementById(
-            "owner-tools"
-        );
-
-
-    const addSetButton =
-        document.getElementById(
-            "add-set-button"
-        );
-
-
-    const logoutButton =
-        document.getElementById(
-            "logout-button"
-        );
-
-
-    const loginModal =
-        document.getElementById(
-            "login-modal"
-        );
-
-
-    const addSetModal =
-        document.getElementById(
-            "add-set-modal"
-        );
-
-
-    const loginForm =
-        document.getElementById(
-            "login-form"
-        );
-
-
-    const addSetForm =
-        document.getElementById(
-            "add-set-form"
-        );
-
-
-    const loginError =
-        document.getElementById(
-            "login-error"
-        );
-
-
-    const addSetError =
-        document.getElementById(
-            "add-set-error"
-        );
-
-
-    /* ============================= */
-    /* MODALS */
-    /* ============================= */
-
-    function openModal(modal) {
-
-        if (!modal) return;
-
-        modal.classList.add(
-            "open"
-       
+            ).len
