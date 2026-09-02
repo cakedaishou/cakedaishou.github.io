@@ -28,6 +28,19 @@ const subtitles = [
     "fishnets>>thigh socks"
 ];
 
+let statTimers = {
+    sets: null,
+    wl: null
+};
+
+let lastStats = {
+    sets: null,
+    wins: null,
+    losses: null,
+    roundsWon: null,
+    roundsLost: null
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     startApp();
 });
@@ -647,37 +660,192 @@ function updateStats(sets) {
         return;
     }
 
-    const wins = sets.filter((set) => set.result === "win").length;
-    const losses = sets.filter((set) => set.result === "loss").length;
+    const wins = sets.filter(
+        (set) => set.result === "win"
+    ).length;
+
+    const losses = sets.filter(
+        (set) => set.result === "loss"
+    ).length;
 
     const roundsWon = sets.reduce(
-        (total, set) => total + Number(set.player_score || 0),
+        (total, set) => {
+            const score = Number(set.player_score);
+
+            return total + (
+                Number.isFinite(score)
+                    ? score
+                    : 0
+            );
+        },
         0
     );
 
     const roundsLost = sets.reduce(
-        (total, set) => total + Number(set.opponent_score || 0),
+        (total, set) => {
+            const score = Number(set.opponent_score);
+
+            return total + (
+                Number.isFinite(score)
+                    ? score
+                    : 0
+            );
+        },
         0
     );
 
+    /* =========================
+       SETS
+    ========================= */
+
     if (setsElement) {
-        setsElement.textContent = sets.length;
+        if (lastStats.sets !== sets.length) {
+            animateSetNumber(
+                setsElement,
+                sets.length
+            );
+
+            lastStats.sets = sets.length;
+        }
     }
+
+    /* =========================
+       W / L
+    ========================= */
 
     if (wlElement) {
-        wlElement.textContent = `${wins} - ${losses}`;
+        if (
+            lastStats.wins !== wins ||
+            lastStats.losses !== losses
+        ) {
+            typeStatistic(
+                wlElement,
+                `${wins} - ${losses}`
+            );
+
+            lastStats.wins = wins;
+            lastStats.losses = losses;
+        }
     }
+
+    /* =========================
+       WINRATE
+    ========================= */
 
     if (winrateElement) {
-        winrateElement.textContent =
-            sets.length > 0
-                ? `${Math.round((wins / sets.length) * 100)}%`
-                : "—";
+        if (sets.length === 0) {
+            winrateElement.textContent = "—";
+        } else {
+            const winrate =
+                (wins / sets.length) * 100;
+
+            const rounded =
+                Math.round(winrate * 10) / 10;
+
+            winrateElement.textContent =
+                `${rounded}%`;
+        }
     }
 
+    /* =========================
+       ROUNDS
+    ========================= */
+
     if (roundsElement) {
-        roundsElement.textContent = `${roundsWon} - ${roundsLost}`;
+        if (
+            lastStats.roundsWon !== roundsWon ||
+            lastStats.roundsLost !== roundsLost
+        ) {
+            roundsElement.textContent =
+                `${roundsWon} - ${roundsLost}`;
+
+            lastStats.roundsWon = roundsWon;
+            lastStats.roundsLost = roundsLost;
+        }
     }
+}
+
+
+/* =========================
+   STAT ANIMATIONS
+========================= */
+
+function animateSetNumber(element, target) {
+    if (statTimers.sets) {
+        clearInterval(statTimers.sets);
+        statTimers.sets = null;
+    }
+
+    const current = Number.parseInt(
+        element.textContent,
+        10
+    );
+
+    const start = Number.isFinite(current)
+        ? current
+        : 0;
+
+    if (start === target) {
+        element.textContent = String(target);
+        return;
+    }
+
+    if (target === 0) {
+        element.textContent = "0";
+        return;
+    }
+
+    let value = start;
+
+    const direction =
+        target > start
+            ? 1
+            : -1;
+
+    /*
+        The more sets there are,
+        the faster the counter moves.
+    */
+
+    const delay = Math.max(
+        28,
+        145 - (target * 4)
+    );
+
+    statTimers.sets = setInterval(() => {
+        value += direction;
+
+        element.textContent =
+            String(value);
+
+        if (value === target) {
+            clearInterval(statTimers.sets);
+            statTimers.sets = null;
+        }
+    }, delay);
+}
+
+
+function typeStatistic(element, text) {
+    if (statTimers.wl) {
+        clearInterval(statTimers.wl);
+        statTimers.wl = null;
+    }
+
+    element.textContent = "";
+
+    let index = 0;
+
+    statTimers.wl = setInterval(() => {
+        element.textContent += text[index];
+
+        index++;
+
+        if (index >= text.length) {
+            clearInterval(statTimers.wl);
+            statTimers.wl = null;
+        }
+    }, 50);
 }
 
 
@@ -728,29 +896,4 @@ function setupDateInput() {
     }
 
     const now = new Date();
-    const offset = now.getTimezoneOffset();
-
-    const localDate = new Date(
-        now.getTime() - offset * 60 * 1000
-    )
-        .toISOString()
-        .split("T")[0];
-
-    input.value = localDate;
-}
-
-function showLoadingError(message) {
-    const list = document.getElementById("sets-list");
-
-    if (!list) {
-        return;
-    }
-
-    list.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-icon">—</div>
-            <h3>${escapeHtml(message)}</h3>
-            <p>check the browser console for the error...</p>
-        </div>
-    `;
-}
+    const offset = now.getTimezoneOff
