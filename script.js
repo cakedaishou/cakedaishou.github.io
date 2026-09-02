@@ -183,6 +183,7 @@ if (document.body.classList.contains("sets-page")) {
     const noResults = document.createElement("div");
 
     noResults.className = "empty-state";
+
     noResults.innerHTML = `
         <div class="empty-icon">—</div>
         <h3>nothing here yet</h3>
@@ -266,27 +267,38 @@ if (document.body.classList.contains("sets-page")) {
          */
 
         if (allFilter) {
-            const count = allFilter.querySelector("span");
+
+            const count =
+                allFilter.querySelector("span");
 
             if (count) {
                 count.textContent = setCards.length;
             }
+
         }
 
+
         if (winsFilter) {
-            const count = winsFilter.querySelector("span");
+
+            const count =
+                winsFilter.querySelector("span");
 
             if (count) {
                 count.textContent = winCount;
             }
+
         }
 
+
         if (lossesFilter) {
-            const count = lossesFilter.querySelector("span");
+
+            const count =
+                lossesFilter.querySelector("span");
 
             if (count) {
                 count.textContent = lossCount;
             }
+
         }
 
 
@@ -331,10 +343,23 @@ if (document.body.classList.contains("sets-page")) {
             "click",
             function () {
 
+                /*
+                 * Only read the text before the
+                 * number inside the button.
+                 */
+
+                const textNode =
+                    Array.from(button.childNodes).find(
+                        function (node) {
+                            return node.nodeType === Node.TEXT_NODE;
+                        }
+                    );
+
                 const text =
-                    button.textContent
-                        .trim()
-                        .toLowerCase();
+                    textNode
+                        ? textNode.textContent.trim().toLowerCase()
+                        : "";
+
 
                 currentFilter = text;
 
